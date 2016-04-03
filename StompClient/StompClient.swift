@@ -9,7 +9,7 @@
 import UIKit
 import Starscream
 
-protocol WebSocketProtocol {
+public protocol WebSocketProtocol {
     
     weak var delegate: WebSocketDelegate? { get set }
     
@@ -21,7 +21,7 @@ protocol WebSocketProtocol {
 
 extension WebSocket: WebSocketProtocol {
 
-    func writeString(str: String) {
+    public func writeString(str: String) {
         writeString(str, completion: nil)
     }
 }
@@ -37,13 +37,13 @@ public protocol StompClientDelegate: NSObjectProtocol {
 public class StompClient: NSObject, WebSocketDelegate {
     
     // MARK: - Public Properties
-    weak var delegate: StompClientDelegate?
+    public weak var delegate: StompClientDelegate?
 
     // MARK: - Private Properties
     private let socket: WebSocketProtocol
     
     // MARK: - Designated Initializer
-    init(socket: WebSocketProtocol) {
+    public init(socket: WebSocketProtocol) {
         self.socket = socket
         
         super.init()
@@ -52,23 +52,23 @@ public class StompClient: NSObject, WebSocketDelegate {
     }
     
     // MARK: - Public Methods
-    func connect() {
+    public func connect() {
         socket.connect()
     }
     
-    func disconnect() {
+    public func disconnect() {
         sendDisconnect()
         socket.disconnect(forceTimeout: 0.0)
     }
     
-    func subscribe(destination: String, parameters: ParametersConvertible?) {
+    public func subscribe(destination: String, parameters: ParametersConvertible?) {
         let destinationId = "sub-" + NSNumber(integer: Int(arc4random()) % 1000).stringValue
         let command = StompSendingCommand.Subscribe(destination: destination, destinationId: destinationId, parameters: parameters)
         let frame = StompSendingFrame(command: command)
         sendFrame(frame)
     }
     
-    func unsubscribe(destination: String) {
+    public func unsubscribe(destination: String) {
         let command = StompSendingCommand.Unsubscribe(destination: destination)
         let frame = StompSendingFrame(command: command)
         sendFrame(frame)
@@ -131,7 +131,7 @@ extension StompClient {
             let data = body.dataUsingEncoding(NSUTF8StringEncoding)!
             delegate?.stompClient(self, didReceivedData: data)
         case .Error(let message, _):
-            let error = NSError(domain: "com.nogle.surveillance", code: 999, userInfo: [NSLocalizedDescriptionKey : message])
+            let error = NSError(domain: "com.shenghuawu.StompClient", code: 999, userInfo: [NSLocalizedDescriptionKey : message])
             delegate?.stompClient(self, didErrorOccurred: error)
         default:
             break
@@ -145,7 +145,7 @@ extension StompClient {
 }
 
 // MARK: - Parameters Convertible
-protocol ParametersConvertible: CustomStringConvertible {
+public protocol ParametersConvertible: CustomStringConvertible {
     
     func toJSON() -> AnyObject
     
