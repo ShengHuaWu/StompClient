@@ -16,11 +16,14 @@ After you are connected, there are some delegate methods that we need to impleme
 
 #### Delegate Methods
 `stompClientDidConnected(client: StompClient)` is called when the client connects to the server.
+
 `stompClient(client: StompClient, didErrorOccurred error: NSError)` is called when error occurs.
+
 `stompClient(client: StompClient, didReceivedData data: NSData)` is called when the client receive a message from the server.
 
 #### Subscription
 You can use `subscribe(destination: String, parameters: ParametersConvertible?)` method to subscribe a topic.
+
 It's possible to pass parameters in subscription. Just create a `struct` for your parameters and let it conform `ParametersConvertible` protocol.
 
     struct MyParameters: ParametersConvertible {
