@@ -88,15 +88,11 @@ public class StompClient: NSObject, WebSocketDelegate {
     }
     
     private func sendFrame(frame: StompSendingFrame) {
-        do {
-            let data = try NSJSONSerialization.dataWithJSONObject([frame.description], options: NSJSONWritingOptions(rawValue: 0))
-            let string = String(data: data, encoding: NSUTF8StringEncoding)!
-            // Because STOMP is a message convey protocol, only this delegate method
-            // will be called, and we MUST use -writeString method to pass messages.
-            socket.writeString(string)
-        } catch let error as NSError {
-            delegate?.stompClient(self, didErrorOccurred: error)
-        }
+        let data = try! NSJSONSerialization.dataWithJSONObject([frame.description], options: NSJSONWritingOptions(rawValue: 0))
+        let string = String(data: data, encoding: NSUTF8StringEncoding)!
+        // Because STOMP is a message convey protocol, only this delegate method
+        // will be called, and we MUST use -writeString method to pass messages.
+        socket.writeString(string)
     }
     
 }
@@ -155,13 +151,8 @@ extension ParametersConvertible {
     
     var description: String {
         get {
-            do {
-                let data = try NSJSONSerialization.dataWithJSONObject(toJSON(), options: NSJSONWritingOptions(rawValue: 0))
-                return String(data: data, encoding: NSUTF8StringEncoding)!
-            } catch let error as NSError {
-                debugPrint("convert to json data error: \(error.localizedDescription)")
-                return ""
-            }
+            let data = try! NSJSONSerialization.dataWithJSONObject(toJSON(), options: NSJSONWritingOptions(rawValue: 0))
+            return String(data: data, encoding: NSUTF8StringEncoding)!
         }
     }
     
