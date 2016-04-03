@@ -26,7 +26,7 @@ extension WebSocket: WebSocketProtocol {
     }
 }
 
-protocol StompClientDelegate: NSObjectProtocol {
+public protocol StompClientDelegate: NSObjectProtocol {
     
     func stompClientDidConnected(client: StompClient)
     func stompClient(client: StompClient, didErrorOccurred error: NSError)
@@ -34,7 +34,7 @@ protocol StompClientDelegate: NSObjectProtocol {
     
 }
 
-class StompClient: NSObject, WebSocketDelegate {
+public class StompClient: NSObject, WebSocketDelegate {
     
     // MARK: - Public Properties
     weak var delegate: StompClientDelegate?
@@ -104,17 +104,17 @@ class StompClient: NSObject, WebSocketDelegate {
 // MARK: - Websocket Delegate
 extension StompClient {
     
-    func websocketDidConnect(socket: WebSocket) {
+    public func websocketDidConnect(socket: WebSocket) {
         // We should wait for server response an open type frame.
     }
     
-    func websocketDidDisconnect(socket: WebSocket, error: NSError?) {
+    public func websocketDidDisconnect(socket: WebSocket, error: NSError?) {
         if let err = error {
             delegate?.stompClient(self, didErrorOccurred: err)
         }
     }
     
-    func websocketDidReceiveMessage(socket: WebSocket, text: String) {
+    public func websocketDidReceiveMessage(socket: WebSocket, text: String) {
         let frame = StompResponseFrame(message: text)
         
         if frame.type == .Open {
@@ -138,7 +138,7 @@ extension StompClient {
         }
     }
     
-    func websocketDidReceiveData(socket: WebSocket, data: NSData) {
+    public func websocketDidReceiveData(socket: WebSocket, data: NSData) {
         // This delegate will NOT be called, since STOMP is a message convey protocol.
     }
     
