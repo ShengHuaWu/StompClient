@@ -14,7 +14,7 @@ class TraderDesktopApiTests: XCTestCase {
     
     private var client: StompClient!
     private var socket: WebSocket!
-    private let host = "http://10.1.20.28:8080"
+    private let host = "http://10.1.10.113:8080"
     
     override func setUp() {
         super.setUp()
@@ -37,28 +37,29 @@ class TraderDesktopApiTests: XCTestCase {
         let session = NSURLSession.sharedSession()
         let loginURLString = host + "/trader/desktop/auth/login"
         let request = NSMutableURLRequest(URL: NSURL(string: loginURLString)!)
-        let param = ["id" : "shawn@nogle.com", "pass" : "Shawn123"]
-//        var parts = [String]()
-//        for (key, value) in param {
-//            let field = key + "=" + value
-//            parts.append(field)
-//        }
-//        let string = parts.joinWithSeparator("&")
-//        let stringData = string.dataUsingEncoding(NSUTF8StringEncoding)!
-        let data = try! NSJSONSerialization.dataWithJSONObject(param, options: NSJSONWritingOptions(rawValue: 0))
         request.HTTPMethod = "POST"
-//        request.addValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+//        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let param = ["id" : "shawn@nogle.com", "pass" : "Shawn123"]
+        let string = convertToQueryString(param)
+        let data = string.dataUsingEncoding(NSUTF8StringEncoding)!
+//        let data = try! NSJSONSerialization.dataWithJSONObject(param, options: NSJSONWritingOptions(rawValue: 0))
         request.HTTPBody = data
+        
         let task = session.dataTaskWithRequest(request) { (data, response, error) in
             let res = response as! NSHTTPURLResponse
             if res.statusCode == 200 {
-                self.parseCookies(res)
-                
+                let fields = res.allHeaderFields as! [String : String]
+                let cookies = NSHTTPCookie.cookiesWithResponseHeaderFields(fields, forURL: res.URL!)
+                let cookie = cookies.filter({
+                    $0.name == "JSESSIONID"
+                }).first!
+                self.socket.headers["Cookie"] = cookie.name + "=" + cookie.value
                 self.client.connect()
             } else {
                 debugPrint(res)
-                XCTAssert(false, "Status code isn't 200")
+                XCTAssert(false, "Status code isn't 200. Login failed.")
                 delegate.expectation.fulfill()
             }
         }
@@ -68,24 +69,13 @@ class TraderDesktopApiTests: XCTestCase {
     }
     
     // MARK: - Private Methods
-    private func parseCookies(res: NSHTTPURLResponse) {
-        let fields = res.allHeaderFields as! [String : String]
-        let cookies = NSHTTPCookie.cookiesWithResponseHeaderFields(fields, forURL: res.URL!)
-        NSHTTPCookieStorage.sharedHTTPCookieStorage().setCookies(cookies, forURL: res.URL!, mainDocumentURL: nil)
-        for cookie in cookies {
-            var cookieProperties = [String: AnyObject]()
-            cookieProperties[NSHTTPCookieName] = cookie.name
-            cookieProperties[NSHTTPCookieValue] = cookie.value
-            cookieProperties[NSHTTPCookieDomain] = cookie.domain
-            cookieProperties[NSHTTPCookiePath] = cookie.path
-            cookieProperties[NSHTTPCookieVersion] = NSNumber(integer: cookie.version)
-            cookieProperties[NSHTTPCookieExpires] = NSDate().dateByAddingTimeInterval(31536000)
-            
-            let newCookie = NSHTTPCookie(properties: cookieProperties)
-            NSHTTPCookieStorage.sharedHTTPCookieStorage().setCookie(newCookie!)
-            
-            print("name: \(cookie.name) value: \(cookie.value)")
+    func convertToQueryString(parameters: [String : String]) -> String {
+        var parts = [String]()
+        for (key, value) in parameters {
+            let field = key + "=" + value
+            parts.append(field)
         }
+        return parts.joinWithSeparator("&")
     }
     
 }
@@ -111,8 +101,8 @@ class AccountPNLDelegate: NSObject, StompClientDelegate {
     
     func stompClient(client: StompClient, didReceivedData data: NSData) {
         let json = try! NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
-        debugPrint(json)
-//        XCTAssert(json is [AnyObject], "Reveived data isn't an array.")
+        XCTAssertNotNil(json["accountId"], "Account Id is empty.")
+        XCTAssertEqual(json["accountId"]!, "shawn@nogle.com", "Account Id is wrong.")
         
         client.unsubscribe(destination)
         
