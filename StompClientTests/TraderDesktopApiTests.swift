@@ -28,8 +28,8 @@ class TraderDesktopApiTests: XCTestCase {
         super.tearDown()
     }
     
-    // MARK: - Enabled Tests
-    func testSubscribeAccountPNL() {
+    // MARK: - Disabled Tests
+    func disable_testSubscribeAccountPNL() {
         let delegate = AccountPNLDelegate()
         delegate.expectation = expectationWithDescription("Subscribe account pnl")
         client.delegate = delegate
