@@ -22,18 +22,7 @@ After you are connected, there are some delegate methods that we need to impleme
 `stompClient(client: StompClient, didReceivedData data: NSData)` is called when the client receive a message from the server.
 
 #### Subscription
-You can use `subscribe(destination: String, parameters: ParametersConvertible?)` method to subscribe a topic.
-
-It's possible to pass parameters in subscription. Just create a `struct` for your parameters and let it conform `ParametersConvertible` protocol.
-
-    struct MyParameters: ParametersConvertible {
-      let title: String
-      let fields: [String]
-
-      func toJSON -> AnyObject {
-        return ["title": title, "fields": fields]
-      }
-    }
+You can use `subscribe(destination: String, parameters: [String : String]?)` method to subscribe a topic.
 
 ### Carthage Install
 Add the following line into your _Cartfile_,
