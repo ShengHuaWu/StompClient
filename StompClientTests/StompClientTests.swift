@@ -33,8 +33,7 @@ class StompClientTests: XCTestCase, StompClientDelegate {
     // MARK: - Enabled Tests
     func testConnect() {
         let data = try! NSJSONSerialization.dataWithJSONObject(["CONNECTED\nheart-beat:0,0\nversion:1.1\n\n\0"], options: NSJSONWritingOptions(rawValue: 0))
-        let command = String(data: data, encoding: NSUTF8StringEncoding)!
-        socket.expectedMessage = "a" + command
+        socket.expectedMessage = "a" + String(data: data, encoding: NSUTF8StringEncoding)!
         
         client.connect()
         
@@ -44,8 +43,7 @@ class StompClientTests: XCTestCase, StompClientDelegate {
     
     func testDisconnect() {
         let data = try! NSJSONSerialization.dataWithJSONObject(["CONNECTED\nheart-beat:0,0\nversion:1.1\n\n\0"], options: NSJSONWritingOptions(rawValue: 0))
-        let command = String(data: data, encoding: NSUTF8StringEncoding)!
-        socket.expectedMessage = "a" + command
+        socket.expectedMessage = "a" + String(data: data, encoding: NSUTF8StringEncoding)!
         socket.expectedError = NSError(domain: "com.nogle.surveillance", code: 999, userInfo: nil)
         
         client.disconnect()
@@ -59,10 +57,9 @@ class StompClientTests: XCTestCase, StompClientDelegate {
         let bodyData = try! NSJSONSerialization.dataWithJSONObject(body, options: NSJSONWritingOptions(rawValue: 0))
         let bodyString = String(data: bodyData, encoding: NSUTF8StringEncoding)!
         let data = try! NSJSONSerialization.dataWithJSONObject(["MESSAGE\ndestination:/user/topic/view/0\nsubscription:sub-0\nmessage-id:1234\ncontent-length:0\n\n\(bodyString)\n\0"], options: NSJSONWritingOptions(rawValue: 0))
-        let command = String(data: data, encoding: NSUTF8StringEncoding)!
-        socket.expectedMessage = "a" + command
+        socket.expectedMessage = "a" + String(data: data, encoding: NSUTF8StringEncoding)!
         
-        client.subscribe("")
+        client.subscribe("/path", parameters: ["eid" : "5566"])
         
         XCTAssert(socket.isMethodCalled, "-writeString method isn't called.")
         XCTAssertNotNil(receivedData, "Received data is empty.")
@@ -70,10 +67,9 @@ class StompClientTests: XCTestCase, StompClientDelegate {
     
     func testSubscribeWithError() {
         let data = try! NSJSONSerialization.dataWithJSONObject(["ERROR\nmessage:this is an error\ncontent-length:0\n\n\0"], options: NSJSONWritingOptions(rawValue: 0))
-        let command = String(data: data, encoding: NSUTF8StringEncoding)!
-        socket.expectedMessage = "a" + command
+        socket.expectedMessage = "a" + String(data: data, encoding: NSUTF8StringEncoding)!
         
-        client.subscribe("")
+        client.subscribe("/path")
         
         XCTAssert(socket.isMethodCalled, "-writeString method isn't called.")
         XCTAssertNotNil(receivedError, "Received error is empty.")
@@ -81,10 +77,9 @@ class StompClientTests: XCTestCase, StompClientDelegate {
     
     func testUnsubscribe() {
         let data = try! NSJSONSerialization.dataWithJSONObject(["CONNECTED\nheart-beat:0,0\nversion:1.1\n\n\0"], options: NSJSONWritingOptions(rawValue: 0))
-        let command = String(data: data, encoding: NSUTF8StringEncoding)!
-        socket.expectedMessage = "a" + command
+        socket.expectedMessage = "a" + String(data: data, encoding: NSUTF8StringEncoding)!
         
-        client.unsubscribe("")
+        client.unsubscribe("/path")
         
         XCTAssert(socket.isMethodCalled, "-writeString method isn't called.")
     }
