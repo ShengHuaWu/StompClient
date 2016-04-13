@@ -62,7 +62,7 @@ class StompClientTests: XCTestCase, StompClientDelegate {
         let command = String(data: data, encoding: NSUTF8StringEncoding)!
         socket.expectedMessage = "a" + command
         
-        client.subscribe("", parameters: nil)
+        client.subscribe("")
         
         XCTAssert(socket.isMethodCalled, "-writeString method isn't called.")
         XCTAssertNotNil(receivedData, "Received data is empty.")
@@ -73,7 +73,7 @@ class StompClientTests: XCTestCase, StompClientDelegate {
         let command = String(data: data, encoding: NSUTF8StringEncoding)!
         socket.expectedMessage = "a" + command
         
-        client.subscribe("", parameters: nil)
+        client.subscribe("")
         
         XCTAssert(socket.isMethodCalled, "-writeString method isn't called.")
         XCTAssertNotNil(receivedError, "Received error is empty.")

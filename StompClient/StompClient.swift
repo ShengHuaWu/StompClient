@@ -61,7 +61,7 @@ public class StompClient: NSObject, WebSocketDelegate {
         socket.disconnect(forceTimeout: 0.0)
     }
     
-    public func subscribe(destination: String, parameters: [String : String]?) {
+    public func subscribe(destination: String, parameters: [String : String]? = nil) {
         let id = "sub-" + NSNumber(integer: Int(arc4random()) % 1000).stringValue
         var headers:Set<StompHeader> = [.DestinationId(id: id), .Destination(path: destination)]
         if let parameters = parameters {
@@ -108,29 +108,37 @@ extension StompClient {
     }
     
     public func websocketDidDisconnect(socket: WebSocket, error: NSError?) {
-        if let err = error {
-            delegate?.stompClient(self, didErrorOccurred: err)
+        if let error = error {
+            delegate?.stompClient(self, didErrorOccurred: error)
         }
     }
     
     public func websocketDidReceiveMessage(socket: WebSocket, text: String) {
-        let frame = StompResponseFrame(message: text)
+        let frame = StompFrame.generateFrame(text)        
         
         if frame.type == .Open {
             sendConnect()
             return
         } else if frame.type == .HeartBeat {
+            // TODO: Send heart-beat back to server.
             return
         }
         
         switch frame.command {
         case .Connected:
             delegate?.stompClientDidConnected(self)
-        case .Message(_, _, _, _, let body):
-            let data = body.dataUsingEncoding(NSUTF8StringEncoding)!
+        case .Message:
+            guard let body = frame.body else {
+                return
+            }
+            
+            guard let data = body.dataUsingEncoding(NSUTF8StringEncoding) else {
+                return
+            }
+            
             delegate?.stompClient(self, didReceivedData: data)
-        case .Error(let message, _):
-            let error = NSError(domain: "com.shenghuawu.StompClient", code: 999, userInfo: [NSLocalizedDescriptionKey : message])
+        case .Error:
+            let error = NSError(domain: "com.shenghuawu.StompClient", code: 999, userInfo: [NSLocalizedDescriptionKey : frame.message])
             delegate?.stompClient(self, didErrorOccurred: error)
         default:
             break
@@ -139,24 +147,6 @@ extension StompClient {
     
     public func websocketDidReceiveData(socket: WebSocket, data: NSData) {
         // This delegate will NOT be called, since STOMP is a message convey protocol.
-    }
-    
-}
-
-// MARK: - Parameters Convertible
-public protocol ParametersConvertible: CustomStringConvertible {
-    
-    func toJSON() -> AnyObject
-    
-}
-
-extension ParametersConvertible {
-    
-    var description: String {
-        get {
-            let data = try! NSJSONSerialization.dataWithJSONObject(toJSON(), options: NSJSONWritingOptions(rawValue: 0))
-            return String(data: data, encoding: NSUTF8StringEncoding)!
-        }
     }
     
 }
