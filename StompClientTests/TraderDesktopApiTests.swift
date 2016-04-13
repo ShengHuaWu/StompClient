@@ -14,7 +14,7 @@ class TraderDesktopApiTests: XCTestCase {
     
     private var client: StompClient!
     private var socket: WebSocket!
-    private let host = "http://10.1.10.113:8080"
+    private let host = "http://10.1.20.28:8080"
     
     override func setUp() {
         super.setUp()
@@ -38,13 +38,10 @@ class TraderDesktopApiTests: XCTestCase {
         let loginURLString = host + "/trader/desktop/auth/login"
         let request = NSMutableURLRequest(URL: NSURL(string: loginURLString)!)
         request.HTTPMethod = "POST"
-        request.addValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-//        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        let param = ["id" : "shawn@nogle.com", "pass" : "Shawn123"]
-        let string = convertToQueryString(param)
-        let data = string.dataUsingEncoding(NSUTF8StringEncoding)!
-//        let data = try! NSJSONSerialization.dataWithJSONObject(param, options: NSJSONWritingOptions(rawValue: 0))
+        let param = ["id" : "laphone", "pass" : "laphone"]
+        let data = try! NSJSONSerialization.dataWithJSONObject(param, options: NSJSONWritingOptions(rawValue: 0))
         request.HTTPBody = data
         
         let task = session.dataTaskWithRequest(request) { (data, response, error) in
@@ -68,16 +65,6 @@ class TraderDesktopApiTests: XCTestCase {
         waitForExpectationsWithTimeout(500.0, handler: nil)
     }
     
-    // MARK: - Private Methods
-    func convertToQueryString(parameters: [String : String]) -> String {
-        var parts = [String]()
-        for (key, value) in parameters {
-            let field = key + "=" + value
-            parts.append(field)
-        }
-        return parts.joinWithSeparator("&")
-    }
-    
 }
 
 // MARK: - Stub Delegate
@@ -87,7 +74,7 @@ class AccountPNLDelegate: NSObject, StompClientDelegate {
     var expectation: XCTestExpectation!
     
     // MARK: - Private Properties
-    private let destination = "/account/accountpnl/shawn@nogle.com"
+    private let destination = "/account/accountpnl/laphone"
     
     // MARK: - Stomp Client Delegate
     func stompClientDidConnected(client: StompClient) {
@@ -101,8 +88,7 @@ class AccountPNLDelegate: NSObject, StompClientDelegate {
     
     func stompClient(client: StompClient, didReceivedData data: NSData) {
         let json = try! NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
-        XCTAssertNotNil(json["accountId"], "Account Id is empty.")
-        XCTAssertEqual(json["accountId"]!, "shawn@nogle.com", "Account Id is wrong.")
+        XCTAssertEqual(json["accountId"], "laphone", "Account Id is wrong.")
         
         client.unsubscribe(destination)
         
