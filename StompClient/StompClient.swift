@@ -61,33 +61,36 @@ public class StompClient: NSObject, WebSocketDelegate {
         socket.disconnect(forceTimeout: 0.0)
     }
     
-    public func subscribe(destination: String, parameters: ParametersConvertible?) {
-        let destinationId = "sub-" + NSNumber(integer: Int(arc4random()) % 1000).stringValue
-        let command = StompSendingCommand.Subscribe(destination: destination, destinationId: destinationId, parameters: parameters)
-        let frame = StompSendingFrame(command: command)
+    public func subscribe(destination: String, parameters: [String : String]?) {
+        let id = "sub-" + NSNumber(integer: Int(arc4random()) % 1000).stringValue
+        var headers:Set<StompHeader> = [.DestinationId(id: id), .Destination(path: destination)]
+        if let parameters = parameters {
+            for (key, value) in parameters {
+                headers.insert(.Custom(key: key, value: value))
+            }
+        }
+        let frame = StompFrame(command: .Subscribe, headers: headers)
         sendFrame(frame)
     }
-    
+
     public func unsubscribe(destination: String) {
-        let command = StompSendingCommand.Unsubscribe(destination: destination)
-        let frame = StompSendingFrame(command: command)
+        let frame = StompFrame(command: .Unsubscribe, headers: [.Destination(path: destination)])
         sendFrame(frame)
     }
     
     // MARK: - Private Methods
     private func sendConnect() {
-        let command = StompSendingCommand.Connect(acceptVersion: "1.1", heartBeat: "10000,10000")
-        let frame = StompSendingFrame(command: command)
+        let headers: Set<StompHeader> = [.AcceptVersion(version: "1.1"), .HeartBeat(value: "10000,10000")]
+        let frame = StompFrame(command: .Connect, headers: headers)
         sendFrame(frame)
     }
     
     private func sendDisconnect() {
-        let command = StompSendingCommand.Disconnect
-        let frame = StompSendingFrame(command: command)
+        let frame = StompFrame(command: .Disconnect)
         sendFrame(frame)
     }
     
-    private func sendFrame(frame: StompSendingFrame) {
+    private func sendFrame(frame: StompFrame) {
         let data = try! NSJSONSerialization.dataWithJSONObject([frame.description], options: NSJSONWritingOptions(rawValue: 0))
         let string = String(data: data, encoding: NSUTF8StringEncoding)!
         // Because STOMP is a message convey protocol, only this delegate method
