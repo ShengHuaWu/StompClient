@@ -18,6 +18,7 @@ class StompClientTests: XCTestCase, StompClientDelegate {
     private var isDelegateMethodCalled = false
     private var receivedData: NSData?
     private var receivedError: NSError?
+    private var destination: String?
     
     override func setUp() {
         super.setUp()
@@ -31,14 +32,22 @@ class StompClientTests: XCTestCase, StompClientDelegate {
     }
     
     // MARK: - Enabled Tests
+    func testSetHeaderValue() {
+        client.setValue("JSESSIONID=1234567890", forHeaderField: "Cookie")
+        client.setValue("Bearer 1234567890", forHeaderField: "Authorization")
+        
+        XCTAssertNotNil(socket.headers["Cookie"])
+        XCTAssertNotNil(socket.headers["Authorization"])
+    }
+    
     func testConnect() {
         let data = try! NSJSONSerialization.dataWithJSONObject(["CONNECTED\nheart-beat:0,0\nversion:1.1\n\n\0"], options: NSJSONWritingOptions(rawValue: 0))
         socket.expectedMessage = "a" + String(data: data, encoding: NSUTF8StringEncoding)!
         
         client.connect()
         
-        XCTAssert(socket.isMethodCalled, "-connect method isn't called.")
-        XCTAssert(isDelegateMethodCalled, "-stompClientDidConnected method isn't called.")
+        XCTAssert(socket.isMethodCalled)
+        XCTAssert(isDelegateMethodCalled)
     }
     
     func testDisconnect() {
@@ -48,21 +57,23 @@ class StompClientTests: XCTestCase, StompClientDelegate {
         
         client.disconnect()
         
-        XCTAssert(socket.isMethodCalled, "-disconnect method isn't called.")
-        XCTAssertNotNil(receivedError, "Received error is empty.")
+        XCTAssert(socket.isMethodCalled)
+        XCTAssertNotNil(receivedError)
     }
     
     func testSubscribe() {
         let body = ["key" : "value"]
         let bodyData = try! NSJSONSerialization.dataWithJSONObject(body, options: NSJSONWritingOptions(rawValue: 0))
         let bodyString = String(data: bodyData, encoding: NSUTF8StringEncoding)!
-        let data = try! NSJSONSerialization.dataWithJSONObject(["MESSAGE\ndestination:/user/topic/view/0\nsubscription:sub-0\nmessage-id:1234\ncontent-length:0\n\n\(bodyString)\n\0"], options: NSJSONWritingOptions(rawValue: 0))
+        let destination = "/user/topic/view/0"
+        let data = try! NSJSONSerialization.dataWithJSONObject(["MESSAGE\ndestination:\(destination)\nsubscription:sub-0\nmessage-id:1234\ncontent-length:0\n\n\(bodyString)\n\0"], options: NSJSONWritingOptions(rawValue: 0))
         socket.expectedMessage = "a" + String(data: data, encoding: NSUTF8StringEncoding)!
         
-        client.subscribe("/path", parameters: ["eid" : "5566"])
+        client.subscribe(destination, parameters: ["eid" : "5566"])
         
-        XCTAssert(socket.isMethodCalled, "-writeString method isn't called.")
-        XCTAssertNotNil(receivedData, "Received data is empty.")
+        XCTAssert(socket.isMethodCalled)
+        XCTAssertNotNil(receivedData)
+        XCTAssertEqual(self.destination, destination)
     }
     
     func testSubscribeWithError() {
@@ -71,8 +82,8 @@ class StompClientTests: XCTestCase, StompClientDelegate {
         
         client.subscribe("/path")
         
-        XCTAssert(socket.isMethodCalled, "-writeString method isn't called.")
-        XCTAssertNotNil(receivedError, "Received error is empty.")
+        XCTAssert(socket.isMethodCalled)
+        XCTAssertNotNil(receivedError)
     }
     
     func testUnsubscribe() {
@@ -81,7 +92,7 @@ class StompClientTests: XCTestCase, StompClientDelegate {
         
         client.unsubscribe("/path")
         
-        XCTAssert(socket.isMethodCalled, "-writeString method isn't called.")
+        XCTAssert(socket.isMethodCalled)
     }
     
 }
@@ -97,8 +108,9 @@ extension StompClientTests {
         receivedError = error
     }
     
-    func stompClient(client: StompClient, didReceivedData data: NSData) {
+    func stompClient(client: StompClient, didReceivedData data: NSData, fromDestination destination: String) {
         receivedData = data
+        self.destination = destination
     }
     
 }
@@ -108,6 +120,8 @@ class MockWebSocket: WebSocketProtocol {
     
     // MARK: - Public Properties
     weak var delegate: WebSocketDelegate?
+    var headers: [String : String] = [:]
+    var isConnected: Bool = false
     
     var isMethodCalled = false
     var expectedMessage: String!

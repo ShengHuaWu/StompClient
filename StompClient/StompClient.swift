@@ -9,28 +9,11 @@
 import UIKit
 import Starscream
 
-public protocol WebSocketProtocol {
-    
-    weak var delegate: WebSocketDelegate? { get set }
-    
-    func connect()
-    func disconnect(forceTimeout forceTimeout: NSTimeInterval?)
-    func writeString(str: String)
-    
-}
-
-extension WebSocket: WebSocketProtocol {
-
-    public func writeString(str: String) {
-        writeString(str, completion: nil)
-    }
-}
-
 public protocol StompClientDelegate: NSObjectProtocol {
     
     func stompClientDidConnected(client: StompClient)
     func stompClient(client: StompClient, didErrorOccurred error: NSError)
-    func stompClient(client: StompClient, didReceivedData data: NSData)
+    func stompClient(client: StompClient, didReceivedData data: NSData, fromDestination destination: String)
     
 }
 
@@ -38,9 +21,12 @@ public class StompClient: NSObject, WebSocketDelegate {
     
     // MARK: - Public Properties
     public weak var delegate: StompClientDelegate?
+    public var isConnected: Bool {
+        return socket.isConnected
+    }
 
     // MARK: - Private Properties
-    private let socket: WebSocketProtocol
+    private var socket: WebSocketProtocol
     
     // MARK: - Designated Initializer
     public init(socket: WebSocketProtocol) {
@@ -51,7 +37,17 @@ public class StompClient: NSObject, WebSocketDelegate {
         self.socket.delegate = self
     }
     
+    // MARK: - Convenience Initializer
+    public convenience init(url: NSURL) {
+        let socket = WebSocket(url: url)
+        self.init(socket: socket)
+    }
+    
     // MARK: - Public Methods
+    public func setValue(value: String, forHeaderField field: String) {
+        socket.headers[field] = value
+    }
+    
     public func connect() {
         socket.connect()
     }
@@ -136,9 +132,9 @@ extension StompClient {
                 return
             }
             
-            delegate?.stompClient(self, didReceivedData: data)
+            delegate?.stompClient(self, didReceivedData: data, fromDestination: frame.destination)
         case .Error:
-            let error = NSError(domain: "com.shenghuawu.StompClient", code: 999, userInfo: [NSLocalizedDescriptionKey : frame.message])
+            let error = NSError(domain: "com.shenghuawu.error", code: 999, userInfo: [NSLocalizedDescriptionKey : frame.message])
             delegate?.stompClient(self, didErrorOccurred: error)
         default:
             break
@@ -181,4 +177,23 @@ extension String {
         return randomString
     }
     
+}
+
+public protocol WebSocketProtocol {
+    
+    weak var delegate: WebSocketDelegate? { get set }
+    var headers: [String : String] { get set }
+    var isConnected: Bool { get }
+    
+    func connect()
+    func disconnect(forceTimeout forceTimeout: NSTimeInterval?)
+    func writeString(str: String)
+    
+}
+
+extension WebSocket: WebSocketProtocol {
+    
+    public func writeString(str: String) {
+        writeString(str, completion: nil)
+    }
 }
