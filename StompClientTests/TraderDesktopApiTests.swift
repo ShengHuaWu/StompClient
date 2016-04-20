@@ -15,7 +15,7 @@ class TraderDesktopApiTests: XCTestCase {
     private var client: StompClient!
     private var socket: WebSocket!
     private var jSession: String!
-    private let baseURL = NSURL(string: "http://10.1.20.25:9090")!
+    private let baseURL = NSURL(string: "http://10.1.60.3:9090")!
     private let accoutId = "laphone"
     
     override func setUp() {
