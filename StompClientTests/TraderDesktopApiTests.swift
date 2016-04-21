@@ -24,9 +24,6 @@ class TraderDesktopApiTests: XCTestCase {
         logIn()
         
         let url = baseURL.URLByAppendingPathComponent("/traderdesktop").appendServerIdAndSessionId()
-//        socket = WebSocket(url: url)
-//        socket.headers["Cookie"] = jSession
-//        client = StompClient(socket: socket)
         client = StompClient(url: url)
         client.setValue(jSession, forHeaderField: "Cookie")
         
@@ -345,7 +342,7 @@ class BlotterDelegate: NSObject, StompClientDelegate {
     var expectation: XCTestExpectation?
     
     // MARK: - Private Properties
-    private let destination = "/engine/blotter/5566/47"
+    private let destination = "/engine/blotter/5566/55"
     
     // MARK: - Stomp Client Delegate
     func stompClientDidConnected(client: StompClient) {
@@ -353,7 +350,7 @@ class BlotterDelegate: NSObject, StompClientDelegate {
     }
     
     func stompClient(client: StompClient, didErrorOccurred error: NSError) {
-        XCTAssertTrue(false, "Error: \(error.localizedDescription)")
+        XCTAssert(false, "Error: \(error.localizedDescription)")
         expectation?.fulfill()
     }
     
@@ -384,7 +381,7 @@ class SymbolsPriceDelegate: NSObject, StompClientDelegate {
     }
     
     func stompClient(client: StompClient, didErrorOccurred error: NSError) {
-        XCTAssertTrue(false, "Error: \(error.localizedDescription)")
+        XCTAssert(false, "Error: \(error.localizedDescription)")
         expectation?.fulfill()
     }
     
