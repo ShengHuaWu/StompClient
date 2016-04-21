@@ -99,6 +99,15 @@ enum StompHeader: Hashable {
         }
     }
     
+    var isDestination: Bool {
+        switch self {
+        case .Destination:
+            return true
+        default:
+            return false
+        }
+    }
+    
     var hashValue: Int {
         return key.hashValue
     }
@@ -159,6 +168,18 @@ struct StompFrame: CustomStringConvertible {
     var message: String {
         let filteredHeaders = headers.filter { header -> Bool in
             return header.isMessage
+        }
+        
+        if filteredHeaders.isEmpty {
+            return ""
+        } else {
+            return filteredHeaders.first!.value
+        }
+    }
+    
+    var destination: String {
+        let filteredHeaders = headers.filter { header -> Bool in
+            return header.isDestination
         }
         
         if filteredHeaders.isEmpty {

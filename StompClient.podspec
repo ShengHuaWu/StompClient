@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "StompClient"
-  s.version      = "0.1.0"
+  s.version      = "0.2.0"
   s.summary      = "Simple STOMP client."
   s.description  = "This project is a simple STOMP client, and we use Starscream as a websocket dependency."
   s.homepage     = "https://github.com/ShengHuaWu/StompClient"
