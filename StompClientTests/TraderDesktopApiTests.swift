@@ -15,7 +15,7 @@ class TraderDesktopApiTests: XCTestCase {
     private var client: StompClient!
     private var socket: WebSocket!
     private var jSession: String!
-    private let baseURL = NSURL(string: "http://10.1.60.3:9090")!
+    private let baseURL = NSURL(string: "http://10.1.60.206:8080")!
     private let accoutId = "laphone"
     
     override func setUp() {
@@ -24,9 +24,11 @@ class TraderDesktopApiTests: XCTestCase {
         logIn()
         
         let url = baseURL.URLByAppendingPathComponent("/traderdesktop").appendServerIdAndSessionId()
-        socket = WebSocket(url: url)
-        socket.headers["Cookie"] = jSession
-        client = StompClient(socket: socket)
+//        socket = WebSocket(url: url)
+//        socket.headers["Cookie"] = jSession
+//        client = StompClient(socket: socket)
+        client = StompClient(url: url)
+        client.setValue(jSession, forHeaderField: "Cookie")
         
     }
     
@@ -193,7 +195,7 @@ class AccountPNLDelegate: NSObject, StompClientDelegate {
         expectation?.fulfill()
     }
     
-    func stompClient(client: StompClient, didReceivedData data: NSData) {
+    func stompClient(client: StompClient, didReceivedData data: NSData, fromDestination destination: String) {
         let json = try! NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
         XCTAssertEqual(json["accountId"], "laphone")
         XCTAssertNotNil(json["closePnl"])
@@ -225,7 +227,7 @@ class MarginUsageDelegate: NSObject, StompClientDelegate {
         expectation?.fulfill()
     }
     
-    func stompClient(client: StompClient, didReceivedData data: NSData) {
+    func stompClient(client: StompClient, didReceivedData data: NSData, fromDestination destination: String) {
         let json = try! NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
         XCTAssertEqual(json["accountId"], "laphone")
         XCTAssertNotNil(json["marginUsage"])
@@ -257,7 +259,7 @@ class ModelInfoDelegate: NSObject, StompClientDelegate {
         expectation?.fulfill()
     }
     
-    func stompClient(client: StompClient, didReceivedData data: NSData) {
+    func stompClient(client: StompClient, didReceivedData data: NSData, fromDestination destination: String) {
         let json = try! NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
         XCTAssertNotNil(json["eid"])
         XCTAssertNotNil(json["modelName"])
@@ -290,7 +292,7 @@ class SystemInfoDelegate: NSObject, StompClientDelegate {
         expectation?.fulfill()
     }
     
-    func stompClient(client: StompClient, didReceivedData data: NSData) {
+    func stompClient(client: StompClient, didReceivedData data: NSData, fromDestination destination: String) {
         let json = try! NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
         XCTAssertNotNil(json["eid"])
         XCTAssertNotNil(json["modelId"])
@@ -323,7 +325,7 @@ class ModelPNLDelegate: NSObject, StompClientDelegate {
         expectation?.fulfill()
     }
     
-    func stompClient(client: StompClient, didReceivedData data: NSData) {
+    func stompClient(client: StompClient, didReceivedData data: NSData, fromDestination destination: String) {
         let json = try! NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
         XCTAssertEqual(json["modelId"], 47)
         XCTAssertNotNil(json["floatingPnl"])
@@ -334,6 +336,7 @@ class ModelPNLDelegate: NSObject, StompClientDelegate {
         expectation?.fulfill()
         expectation = nil
     }
+    
 }
 
 class BlotterDelegate: NSObject, StompClientDelegate {
@@ -354,7 +357,7 @@ class BlotterDelegate: NSObject, StompClientDelegate {
         expectation?.fulfill()
     }
     
-    func stompClient(client: StompClient, didReceivedData data: NSData) {
+    func stompClient(client: StompClient, didReceivedData data: NSData, fromDestination destination: String) {
         let json = try! NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
         XCTAssert(json is [AnyObject])
         
@@ -385,7 +388,7 @@ class SymbolsPriceDelegate: NSObject, StompClientDelegate {
         expectation?.fulfill()
     }
     
-    func stompClient(client: StompClient, didReceivedData data: NSData) {
+    func stompClient(client: StompClient, didReceivedData data: NSData, fromDestination destination: String) {
         let json = try! NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
         XCTAssertEqual(json["symbol"], "cu1606")
         XCTAssertNotNil(json["time"])
@@ -396,7 +399,7 @@ class SymbolsPriceDelegate: NSObject, StompClientDelegate {
         expectation?.fulfill()
         expectation = nil
     }
-    
+
 }
 
 class TopicLogDelegate: NSObject, StompClientDelegate {
@@ -417,7 +420,7 @@ class TopicLogDelegate: NSObject, StompClientDelegate {
         expectation?.fulfill()
     }
     
-    func stompClient(client: StompClient, didReceivedData data: NSData) {
+    func stompClient(client: StompClient, didReceivedData data: NSData, fromDestination destination: String) {
         let json = try! NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
         XCTAssert(json is [AnyObject])
         
