@@ -124,11 +124,7 @@ extension StompClient {
         case .Connected:
             delegate?.stompClientDidConnected(self)
         case .Message:
-            guard let body = frame.body else {
-                return
-            }
-            
-            guard let data = body.dataUsingEncoding(NSUTF8StringEncoding) else {
+            guard let body = frame.body, let data = body.dataUsingEncoding(NSUTF8StringEncoding) else {
                 return
             }
             
