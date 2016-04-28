@@ -58,10 +58,10 @@ public class StompClient: NSObject, WebSocketDelegate {
     }
     
     public func subscribe(destination: String, parameters: [String : String]? = nil) {
-        let id = "sub-" + NSNumber(integer: Int(arc4random()) % 1000).stringValue
+        let id = "sub-" + Int(arc4random_uniform(1000)).description
         var headers:Set<StompHeader> = [.DestinationId(id: id), .Destination(path: destination)]
-        if let parameters = parameters {
-            for (key, value) in parameters {
+        if let params = parameters where !params.isEmpty {
+            for (key, value) in params {
                 headers.insert(.Custom(key: key, value: value))
             }
         }
@@ -124,11 +124,7 @@ extension StompClient {
         case .Connected:
             delegate?.stompClientDidConnected(self)
         case .Message:
-            guard let body = frame.body else {
-                return
-            }
-            
-            guard let data = body.dataUsingEncoding(NSUTF8StringEncoding) else {
+            guard let body = frame.body, let data = body.dataUsingEncoding(NSUTF8StringEncoding) else {
                 return
             }
             
@@ -151,7 +147,7 @@ extension StompClient {
 extension NSURL {
     
     func appendServerIdAndSessionId() -> NSURL {
-        let serverId = NSNumber(integer: Int(arc4random()) % 1000).stringValue
+        let serverId = Int(arc4random_uniform(1000)).description
         let sessionId = String.randomAlphaNumericString(8)
         var path = (serverId as NSString).stringByAppendingPathComponent(sessionId)
         path = (path as NSString).stringByAppendingPathComponent("websocket")
