@@ -223,36 +223,32 @@ extension String {
     
     func parseJSONText() throws -> (StompCommand, Set<StompHeader>, String)  {
         let data = dataUsingEncoding(NSUTF8StringEncoding)!
-        do {
-            let json = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments) as! [String]
-            let components = json.first!.componentsSeparatedByString("\n")
-            let command = StompCommand(rawValue: components.first!)!
-            
-            var headers: Set<StompHeader> = []
-            var body = ""
-            var isBody = false
-            for index in 1 ..< components.count {
-                let component = components[index]
-                if isBody {
-                    body += component
-                    if body.hasSuffix("\0") {
-                        body = body.stringByReplacingOccurrencesOfString("\0", withString: "")
-                    }
+        let json = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments) as! [String]
+        let components = json.first!.componentsSeparatedByString("\n")
+        let command = StompCommand(rawValue: components.first!)!
+        
+        var headers: Set<StompHeader> = []
+        var body = ""
+        var isBody = false
+        for index in 1 ..< components.count {
+            let component = components[index]
+            if isBody {
+                body += component
+                if body.hasSuffix("\0") {
+                    body = body.stringByReplacingOccurrencesOfString("\0", withString: "")
+                }
+            } else {
+                if component == "" {
+                    isBody = true
                 } else {
-                    if component == "" {
-                        isBody = true
-                    } else {
-                        let parts = component.componentsSeparatedByString(":")
-                        if let header = StompHeader.generateHeader(parts.first!, value: parts.last!) {
-                            headers.insert(header)
-                        }
+                    let parts = component.componentsSeparatedByString(":")
+                    if let header = StompHeader.generateHeader(parts.first!, value: parts.last!) {
+                        headers.insert(header)
                     }
                 }
             }
-            return (command, headers, body)
-        } catch let error as NSError {
-            throw error
         }
+        return (command, headers, body)
     }
     
 }
