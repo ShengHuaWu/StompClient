@@ -112,25 +112,25 @@ enum StompHeader: Hashable {
         return key.hashValue
     }
     
-    // MARK: - Public Methods
-    static func generateHeader(key: String, value: String) -> StompHeader? {
+    // MARK: - Initializers
+    init(key: String, value: String) throws {
         switch key {
         case "version":
-            return .Version(version: value)
+            self = .Version(version: value)
         case "subscription":
-            return .Subscription(subId: value)
+            self = .Subscription(subId: value)
         case "message-id":
-            return .MessageId(id: value)
+            self = .MessageId(id: value)
         case "content-length":
-            return .ContentLength(length: value)
+            self = .ContentLength(length: value)
         case "message":
-            return .Message(message: value)
+            self = .Message(message: value)
         case "destination":
-            return .Destination(path: value)
+            self = .Destination(path: value)
         case "heart-beat":
-            return .HeartBeat(value: value)
+            self = .HeartBeat(value: value)
         default:
-            return nil
+            throw NSError(domain: "com.shenghuawu.error", code: 999, userInfo: [NSLocalizedDescriptionKey : "Received header key-value pair is undefined."])
         }
     }
     
@@ -166,32 +166,24 @@ struct StompFrame: CustomStringConvertible {
     }
     
     var message: String {
-        let filteredHeaders = headers.filter { header -> Bool in
-            return header.isMessage
-        }
-        
-        if filteredHeaders.isEmpty {
-            return ""
+        if let header = headers.filter({ $0.isMessage }).first {
+            return header.value
         } else {
-            return filteredHeaders.first!.value
+            return ""
         }
     }
     
     var destination: String {
-        let filteredHeaders = headers.filter { header -> Bool in
-            return header.isDestination
-        }
-        
-        if filteredHeaders.isEmpty {
-            return ""
+        if let header = headers.filter({ $0.isDestination }).first {
+            return header.value
         } else {
-            return filteredHeaders.first!.value
+            return ""
         }
     }
     
     // MARK: - Private Properties
-    private let lineFeed = "\u{0A}"
-    private let nullChar = "\u{00}"
+    private let lineFeed = "\n"
+    private let nullChar = "\0"
     private(set) var type: StompResponseType?
     private(set) var command: StompCommand
     private(set) var headers: Set<StompHeader>
@@ -207,7 +199,7 @@ struct StompFrame: CustomStringConvertible {
     
     // MARK: - Public Methods
     static func generateFrame(text: String) -> StompFrame {
-        let type = StompResponseType(rawValue: String(text.characters.first!))!
+        let type = StompResponseType(rawValue: String(text.characters.first!))
         do {
             let (command, headers, body) = try String(text.characters.dropFirst()).parseJSONText()
             return StompFrame(type: type, command: command, headers: headers, body: body)
@@ -223,36 +215,34 @@ extension String {
     
     func parseJSONText() throws -> (StompCommand, Set<StompHeader>, String)  {
         let data = dataUsingEncoding(NSUTF8StringEncoding)!
-        do {
-            let json = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments) as! [String]
-            let components = json.first!.componentsSeparatedByString("\n")
-            let command = StompCommand(rawValue: components.first!)!
-            
-            var headers: Set<StompHeader> = []
-            var body = ""
-            var isBody = false
-            for index in 1 ..< components.count {
-                let component = components[index]
-                if isBody {
-                    body += component
-                    if body.hasSuffix("\0") {
-                        body = body.stringByReplacingOccurrencesOfString("\0", withString: "")
-                    }
+        let json = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments) as! [String]
+        let components = json.first!.componentsSeparatedByString("\n")
+        let command = StompCommand(rawValue: components.first!)!
+        
+        var headers: Set<StompHeader> = []
+        var body = ""
+        var isBody = false
+        for index in 1 ..< components.count {
+            let component = components[index]
+            if isBody {
+                body += component
+                if body.hasSuffix("\0") {
+                    body = body.stringByReplacingOccurrencesOfString("\0", withString: "")
+                }
+            } else {
+                if component == "" {
+                    isBody = true
                 } else {
-                    if component == "" {
-                        isBody = true
-                    } else {
-                        let parts = component.componentsSeparatedByString(":")
-                        if let header = StompHeader.generateHeader(parts.first!, value: parts.last!) {
-                            headers.insert(header)
-                        }
+                    let parts = component.componentsSeparatedByString(":")
+                    guard let key = parts.first, let value = parts.last else {
+                        continue
                     }
+                    let header = try StompHeader(key: key, value: value)
+                    headers.insert(header)
                 }
             }
-            return (command, headers, body)
-        } catch let error as NSError {
-            throw error
         }
+        return (command, headers, body)
     }
     
 }
