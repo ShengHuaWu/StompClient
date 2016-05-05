@@ -50,4 +50,13 @@ class StompFrameTests: XCTestCase {
         XCTAssertNotNil(frame.body)
     }
     
+    func testCreateFrameWithStompResponseOpenType() {
+        let text = "o"
+        
+        frame = StompFrame.generateFrame(text)
+        
+        XCTAssertEqual(frame.type, StompResponseType.Open)
+        XCTAssertEqual(frame.command, StompCommand.Error)
+    }
+    
 }

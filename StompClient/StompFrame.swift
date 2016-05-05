@@ -11,7 +11,6 @@ import Foundation
 // MARK: - Commands
 enum StompCommand: String {
     
-    // MARK: - Cases
     case Connect = "CONNECT"
     case Disconnect = "DISCONNECT"
     case Subscribe = "SUBSCRIBE"
@@ -26,7 +25,6 @@ enum StompCommand: String {
 // MARK: - Headers
 enum StompHeader: Hashable {
     
-    // MARK: - Cases
     case AcceptVersion(version: String)
     case HeartBeat(value: String)
     case Destination(path: String)
@@ -144,7 +142,6 @@ func ==(lhs: StompHeader, rhs: StompHeader) -> Bool {
 // MARK: - Response Types
 enum StompResponseType: String {
     
-    // MARK: -  Cases
     case Open = "o"
     case HeartBeat = "h"
     case Array = "a"
@@ -153,6 +150,7 @@ enum StompResponseType: String {
     
 }
 
+// MARK: - Frame
 struct StompFrame: CustomStringConvertible {
     
     // MARK: - Public Properties
