@@ -110,16 +110,23 @@ extension StompClient {
     }
     
     public func websocketDidReceiveMessage(socket: WebSocket, text: String) {
-        let frame = StompFrame.generateFrame(text)        
+        var mutableText = text
+        // Parse response type from the first character
+        let firstCharacter = mutableText.removeAtIndex(mutableText.startIndex)
+        guard let type = StompResponseType(rawValue: String(firstCharacter)) else {
+            return
+        }
         
-        if frame.type == .Open {
+        if type == .Open {
             sendConnect()
             return
-        } else if frame.type == .HeartBeat {
+        } else if type == .HeartBeat {
             // TODO: Send heart-beat back to server.
             return
         }
         
+        // Parse frame from the remaining text
+        let frame = StompFrame.generateFrame(mutableText)
         switch frame.command {
         case .Connected:
             delegate?.stompClientDidConnected(self)

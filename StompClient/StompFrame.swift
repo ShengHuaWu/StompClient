@@ -182,14 +182,12 @@ struct StompFrame: CustomStringConvertible {
     // MARK: - Private Properties
     private let lineFeed = "\n"
     private let nullChar = "\0"
-    private(set) var type: StompResponseType?
     private(set) var command: StompCommand
     private(set) var headers: Set<StompHeader>
     private(set) var body: String?
     
     // MARK: - Designated Initializer
-    init(type: StompResponseType? = nil, command: StompCommand, headers: Set<StompHeader> = [], body: String? = nil) {
-        self.type = type
+    init(command: StompCommand, headers: Set<StompHeader> = [], body: String? = nil) {
         self.command = command
         self.headers = headers
         self.body = body
@@ -197,12 +195,11 @@ struct StompFrame: CustomStringConvertible {
     
     // MARK: - Public Methods
     static func generateFrame(text: String) -> StompFrame {
-        let type = StompResponseType(rawValue: String(text.characters.first!))
         do {
-            let (command, headers, body) = try String(text.characters.dropFirst()).parseJSONText()
-            return StompFrame(type: type, command: command, headers: headers, body: body)
+            let (command, headers, body) = try String(text).parseJSONText()
+            return StompFrame(command: command, headers: headers, body: body)
         } catch let error as NSError {
-            return StompFrame(type: type, command: .Error, headers: [.Message(message: error.localizedDescription)])
+            return StompFrame(command: .Error, headers: [.Message(message: error.localizedDescription)])
         }
     }
     
