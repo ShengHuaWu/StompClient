@@ -11,7 +11,6 @@ import Foundation
 // MARK: - Commands
 enum StompCommand: String {
     
-    // MARK: - Cases
     case Connect = "CONNECT"
     case Disconnect = "DISCONNECT"
     case Subscribe = "SUBSCRIBE"
@@ -21,12 +20,19 @@ enum StompCommand: String {
     case Message = "MESSAGE"
     case Error = "ERROR"
     
+    // MARK: - Public Methods
+    static func parseText(text: String) throws -> StompCommand {
+        guard let command = StompCommand(rawValue: text) else {
+            throw NSError(domain: "com.shenghuawu.error", code: 1002, userInfo: [NSLocalizedDescriptionKey : "Received command is undefined."])
+        }
+        return command
+    }
+    
 }
 
 // MARK: - Headers
 enum StompHeader: Hashable {
     
-    // MARK: - Cases
     case AcceptVersion(version: String)
     case HeartBeat(value: String)
     case Destination(path: String)
@@ -113,7 +119,7 @@ enum StompHeader: Hashable {
     }
     
     // MARK: - Public Methods
-    static func generateHeader(key: String, value: String) -> StompHeader? {
+    static func parseKeyValuePair(key: String, value: String) throws -> StompHeader {
         switch key {
         case "version":
             return .Version(version: value)
@@ -130,7 +136,7 @@ enum StompHeader: Hashable {
         case "heart-beat":
             return .HeartBeat(value: value)
         default:
-            return nil
+            throw NSError(domain: "com.shenghuawu.error", code: 1000, userInfo: [NSLocalizedDescriptionKey : "Received header is undefined."])
         }
     }
     
@@ -144,15 +150,23 @@ func ==(lhs: StompHeader, rhs: StompHeader) -> Bool {
 // MARK: - Response Types
 enum StompResponseType: String {
     
-    // MARK: -  Cases
     case Open = "o"
     case HeartBeat = "h"
     case Array = "a"
     case Message = "m"
     case Close = "c"
     
+    // MARK: - Public Methods
+    static func parseCharacter(char: Character) throws -> StompResponseType {
+        guard let type = StompResponseType(rawValue: String(char)) else {
+            throw NSError(domain: "com.shenghuawu.error", code: 1001, userInfo: [NSLocalizedDescriptionKey : "Received type is undefined."])
+        }
+        return type
+    }
+    
 }
 
+// MARK: - Frame
 struct StompFrame: CustomStringConvertible {
     
     // MARK: - Public Properties
@@ -166,66 +180,41 @@ struct StompFrame: CustomStringConvertible {
     }
     
     var message: String {
-        let filteredHeaders = headers.filter { header -> Bool in
-            return header.isMessage
-        }
-        
-        if filteredHeaders.isEmpty {
-            return ""
+        if let header = headers.filter({ $0.isMessage }).first {
+            return header.value
         } else {
-            return filteredHeaders.first!.value
+            return ""
         }
     }
     
     var destination: String {
-        let filteredHeaders = headers.filter { header -> Bool in
-            return header.isDestination
-        }
-        
-        if filteredHeaders.isEmpty {
-            return ""
+        if let header = headers.filter({ $0.isDestination }).first {
+            return header.value
         } else {
-            return filteredHeaders.first!.value
+            return ""
         }
     }
     
     // MARK: - Private Properties
-    private let lineFeed = "\u{0A}"
-    private let nullChar = "\u{00}"
-    private(set) var type: StompResponseType?
+    private let lineFeed = "\n"
+    private let nullChar = "\0"
     private(set) var command: StompCommand
     private(set) var headers: Set<StompHeader>
     private(set) var body: String?
     
     // MARK: - Designated Initializer
-    init(type: StompResponseType? = nil, command: StompCommand, headers: Set<StompHeader> = [], body: String? = nil) {
-        self.type = type
+    init(command: StompCommand, headers: Set<StompHeader> = [], body: String? = nil) {
         self.command = command
         self.headers = headers
         self.body = body
     }
     
     // MARK: - Public Methods
-    static func generateFrame(text: String) -> StompFrame {
-        let type = StompResponseType(rawValue: String(text.characters.first!))!
-        do {
-            let (command, headers, body) = try String(text.characters.dropFirst()).parseJSONText()
-            return StompFrame(type: type, command: command, headers: headers, body: body)
-        } catch let error as NSError {
-            return StompFrame(type: type, command: .Error, headers: [.Message(message: error.localizedDescription)])
+    static func parseText(text: String) throws -> StompFrame {
+        guard let components = try text.parseJSONString() where !components.isEmpty else {
+            throw NSError(domain: "com.shenghuawu.error", code: 1002, userInfo: [NSLocalizedDescriptionKey : "Received frame is empty."])
         }
-    }
-    
-}
-
-// MARK: - Extensions
-extension String {
-    
-    func parseJSONText() throws -> (StompCommand, Set<StompHeader>, String)  {
-        let data = dataUsingEncoding(NSUTF8StringEncoding)!
-        let json = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments) as! [String]
-        let components = json.first!.componentsSeparatedByString("\n")
-        let command = StompCommand(rawValue: components.first!)!
+        let command = try StompCommand.parseText(components.first!)
         
         var headers: Set<StompHeader> = []
         var body = ""
@@ -242,13 +231,28 @@ extension String {
                     isBody = true
                 } else {
                     let parts = component.componentsSeparatedByString(":")
-                    if let header = StompHeader.generateHeader(parts.first!, value: parts.last!) {
-                        headers.insert(header)
+                    guard let key = parts.first, let value = parts.last else {
+                        continue
                     }
+                    let header = try StompHeader.parseKeyValuePair(key, value: value)
+                    headers.insert(header)
                 }
             }
         }
-        return (command, headers, body)
+        return StompFrame(command: command, headers: headers, body: body)
+    }
+    
+}
+
+// MARK: - Extensions
+extension String {
+    
+    func parseJSONString() throws -> [String]? {
+        return try dataUsingEncoding(NSUTF8StringEncoding).flatMap { data -> [String]? in
+            return try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments) as? [String]
+        }.flatMap { stringArray -> [String]? in
+            return stringArray.first?.componentsSeparatedByString("\n")
+        }
     }
     
 }

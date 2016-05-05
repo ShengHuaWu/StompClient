@@ -40,11 +40,10 @@ class StompFrameTests: XCTestCase {
         let bodyData = try! NSJSONSerialization.dataWithJSONObject(body, options: NSJSONWritingOptions(rawValue: 0))
         let bodyString = String(data: bodyData, encoding: NSUTF8StringEncoding)!
         let data = try! NSJSONSerialization.dataWithJSONObject(["MESSAGE\ndestination:/user/topic/view/0\nsubscription:sub-0\nmessage-id:1234\ncontent-length:0\n\n\(bodyString)\n\0"], options: NSJSONWritingOptions(rawValue: 0))
-        let text = "a" + String(data: data, encoding: NSUTF8StringEncoding)!
+        let text = String(data: data, encoding: NSUTF8StringEncoding)!
         
-        frame = StompFrame.generateFrame(text)
+        frame = try! StompFrame.parseText(text)
         
-        XCTAssertEqual(frame.type, StompResponseType.Array)
         XCTAssertEqual(frame.command, StompCommand.Message)
         XCTAssertEqual(frame.headers.count, 4)
         XCTAssertNotNil(frame.body)

@@ -110,30 +110,38 @@ extension StompClient {
     }
     
     public func websocketDidReceiveMessage(socket: WebSocket, text: String) {
-        let frame = StompFrame.generateFrame(text)        
-        
-        if frame.type == .Open {
-            sendConnect()
-            return
-        } else if frame.type == .HeartBeat {
-            // TODO: Send heart-beat back to server.
-            return
-        }
-        
-        switch frame.command {
-        case .Connected:
-            delegate?.stompClientDidConnected(self)
-        case .Message:
-            guard let body = frame.body, let data = body.dataUsingEncoding(NSUTF8StringEncoding) else {
+        var mutableText = text
+        let firstCharacter = mutableText.removeAtIndex(mutableText.startIndex)
+        do {
+            // Parse response type from the first character
+            let type = try StompResponseType.parseCharacter(firstCharacter)
+            if type == .Open {
+                sendConnect()
+                return
+            } else if type == .HeartBeat {
+                // TODO: Send heart-beat back to server.
                 return
             }
             
-            delegate?.stompClient(self, didReceivedData: data, fromDestination: frame.destination)
-        case .Error:
-            let error = NSError(domain: "com.shenghuawu.error", code: 999, userInfo: [NSLocalizedDescriptionKey : frame.message])
+            // Parse frame from the remaining text
+            let frame = try StompFrame.parseText(mutableText)
+            switch frame.command {
+            case .Connected:
+                delegate?.stompClientDidConnected(self)
+            case .Message:
+                guard let data = frame.body?.dataUsingEncoding(NSUTF8StringEncoding) else {
+                    return
+                }
+                
+                delegate?.stompClient(self, didReceivedData: data, fromDestination: frame.destination)
+            case .Error:
+                let error = NSError(domain: "com.shenghuawu.error", code: 999, userInfo: [NSLocalizedDescriptionKey : frame.message])
+                delegate?.stompClient(self, didErrorOccurred: error)
+            default:
+                break
+            }
+        } catch let error as NSError {
             delegate?.stompClient(self, didErrorOccurred: error)
-        default:
-            break
         }
     }
     
