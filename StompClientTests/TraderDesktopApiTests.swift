@@ -89,7 +89,7 @@ class BlotterDelegate: NSObject, StompClientDelegate {
     var expectation: XCTestExpectation?
     
     // MARK: - Private Properties
-    private let destination = "/engine/blotter/5566/55"
+    private let destination = "/engine/blotter/5566/52"
     
     // MARK: - Stomp Client Delegate
     func stompClientDidConnected(client: StompClient) {
