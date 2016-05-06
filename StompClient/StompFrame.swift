@@ -44,6 +44,8 @@ enum StompHeader: Hashable {
     case MessageId(id: String)
     case ContentLength(length: String)
     case Message(message: String)
+    case UserName(name: String)
+    case ContentType(type: String)
     
     // MARK: - Public Properties
     var key: String {
@@ -68,6 +70,10 @@ enum StompHeader: Hashable {
             return "content-length"
         case .Message:
             return "message"
+        case .UserName:
+            return "user-name"
+        case .ContentType:
+            return "content-type"
         }
     }
     
@@ -93,6 +99,10 @@ enum StompHeader: Hashable {
             return length
         case .Message(let body):
             return body
+        case .UserName(let name):
+            return name
+        case .ContentType(let type):
+            return type
         }
     }
     
@@ -135,6 +145,10 @@ enum StompHeader: Hashable {
             return .Destination(path: value)
         case "heart-beat":
             return .HeartBeat(value: value)
+        case "user-name":
+            return .UserName(name: value)
+        case "content-type":
+            return .ContentType(type: value)
         default:
             throw NSError(domain: "com.shenghuawu.error", code: 1000, userInfo: [NSLocalizedDescriptionKey : "Received header is undefined."])
         }
