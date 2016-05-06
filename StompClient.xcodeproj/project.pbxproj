@@ -10,6 +10,7 @@
 		9B1F82E71CBE316000138B74 /* StompFrameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1F82E61CBE316000138B74 /* StompFrameTests.swift */; };
 		9B65F8271CB0C41900D67393 /* StompClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B65F8241CB0C41900D67393 /* StompClient.swift */; };
 		9B65F82B1CB0C4DC00D67393 /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B65F82A1CB0C4DC00D67393 /* Starscream.framework */; };
+		9B84D2EE1CB4D9B300837AEA /* TraderDesktopApiTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B84D2ED1CB4D9B300837AEA /* TraderDesktopApiTests.swift */; };
 		9B8BBC2C1CB0C97D001EED0D /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B65F82A1CB0C4DC00D67393 /* Starscream.framework */; };
 		9BC3E0C21CBDEE6C00EC2803 /* StompFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC3E0C11CBDEE6C00EC2803 /* StompFrame.swift */; };
 		9BF36D011CAD684D0055A4F0 /* StompClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BF36D001CAD684D0055A4F0 /* StompClient.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -31,6 +32,7 @@
 		9B1F82E61CBE316000138B74 /* StompFrameTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StompFrameTests.swift; sourceTree = "<group>"; };
 		9B65F8241CB0C41900D67393 /* StompClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StompClient.swift; sourceTree = "<group>"; };
 		9B65F82A1CB0C4DC00D67393 /* Starscream.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Starscream.framework; path = Carthage/Build/iOS/Starscream.framework; sourceTree = "<group>"; };
+		9B84D2ED1CB4D9B300837AEA /* TraderDesktopApiTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TraderDesktopApiTests.swift; sourceTree = "<group>"; };
 		9BC3E0C11CBDEE6C00EC2803 /* StompFrame.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StompFrame.swift; sourceTree = "<group>"; };
 		9BF36CFD1CAD684D0055A4F0 /* StompClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = StompClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BF36D001CAD684D0055A4F0 /* StompClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StompClient.h; sourceTree = "<group>"; };
@@ -105,6 +107,7 @@
 				9B1F82E61CBE316000138B74 /* StompFrameTests.swift */,
 				9BF36D0C1CAD684D0055A4F0 /* StompClientTests.swift */,
 				9BF36D0E1CAD684D0055A4F0 /* Info.plist */,
+				9B84D2ED1CB4D9B300837AEA /* TraderDesktopApiTests.swift */,
 			);
 			path = StompClientTests;
 			sourceTree = "<group>";
@@ -262,6 +265,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9BF36D0D1CAD684D0055A4F0 /* StompClientTests.swift in Sources */,
+				9B84D2EE1CB4D9B300837AEA /* TraderDesktopApiTests.swift in Sources */,
 				9B1F82E71CBE316000138B74 /* StompFrameTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
