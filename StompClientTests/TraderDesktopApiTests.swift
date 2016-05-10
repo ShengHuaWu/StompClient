@@ -12,8 +12,8 @@ import XCTest
 class TraderDesktopApiTests: XCTestCase {
     
     private var client: StompClient!
-    private let baseURL = NSURL(string: "http://localhost:3000")!
-//    private let baseURL = NSURL(string: "http://10.1.60.206:8080")!
+//    private let baseURL = NSURL(string: "http://localhost:3000")!
+    private let baseURL = NSURL(string: "http://10.1.60.206:8080")!
     private let accoutId = "laphone"
     private var session: String!
     
@@ -23,14 +23,14 @@ class TraderDesktopApiTests: XCTestCase {
         let url = baseURL.URLByAppendingPathComponent("/traderdesktop").appendServerIdAndSessionId()
         client = StompClient(url: url)
         
-//        login()
-//        client.setValue(session, forHeaderField: "Cookie")
+        login()
+        client.setValue(session, forHeaderField: "Cookie")
     }
     
     override func tearDown() {
         super.tearDown()
         
-//        logout()
+        logout()
     }
     
     // MARK: - Private Methods
@@ -69,17 +69,25 @@ class TraderDesktopApiTests: XCTestCase {
     
     // MARK: - Enabled Tests
     func testSubscribeModelInfo() {
-        let delegate = ModelInfoDelegate()
+        let delegate = StubDelegate(destination: "/account/modelinfo/laphone") { data in
+            let json = try! NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
+            XCTAssertNotNil(json["eid"])
+            XCTAssertNotNil(json["modelName"])
+            XCTAssertNotNil(json["modelId"])
+        }
         delegate.expectation = expectationWithDescription("Subscribe model info")
         client.delegate = delegate
         
         client.connect()
         
-        waitForExpectationsWithTimeout(5.0, handler: nil)
+        waitForExpectationsWithTimeout(500.0, handler: nil)
     }
     
     func testSubscribeBlotter() {
-        let delegate = BlotterDelegate()
+        let delegate = StubDelegate(destination: "/engine/blotter/5566/52") { data in
+            let json = try! NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
+            XCTAssert(json is [AnyObject])
+        }
         delegate.expectation = expectationWithDescription("Subscribe blotter")
         client.delegate = delegate
         
@@ -91,50 +99,27 @@ class TraderDesktopApiTests: XCTestCase {
 }
 
 // MARK: - Stub Delegate
-class ModelInfoDelegate: NSObject, StompClientDelegate {
+class StubDelegate: NSObject, StompClientDelegate {
     
     // MARK: - Public Properties
     var expectation: XCTestExpectation?
     
     // MARK: - Private Properties
-    private let destination = "/account/modelinfo/laphone"
+    private let destination: String
+    private let assertionHandler: NSData -> Void
+    private var destinationId: String?
+    
+    // MARK: - Designated Initializer
+    init(destination: String, assertionHandler: NSData -> Void) {
+        self.destination = destination
+        self.assertionHandler = assertionHandler
+        
+        super.init()
+    }
     
     // MARK: - Stomp Client Delegate
     func stompClientDidConnected(client: StompClient) {
-        client.subscribe(destination)
-    }
-    
-    func stompClient(client: StompClient, didErrorOccurred error: NSError) {
-        XCTAssertTrue(false, "Error: \(error.localizedDescription)")
-        expectation?.fulfill()
-    }
-    
-    func stompClient(client: StompClient, didReceivedData data: NSData, fromDestination destination: String) {
-        let json = try! NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
-        XCTAssertNotNil(json["eid"])
-        XCTAssertNotNil(json["modelName"])
-        XCTAssertNotNil(json["modelId"])
-        
-        client.unsubscribe(destination)
-        
-        XCTAssertNotNil(expectation, "Expectation doesn't setup.")
-        expectation?.fulfill()
-        expectation = nil
-    }
-    
-}
-
-class BlotterDelegate: NSObject, StompClientDelegate {
-    
-    // MARK: - Public Properties
-    var expectation: XCTestExpectation?
-    
-    // MARK: - Private Properties
-    private let destination = "/engine/blotter/5566/52"
-    
-    // MARK: - Stomp Client Delegate
-    func stompClientDidConnected(client: StompClient) {
-        client.subscribe(destination)
+        destinationId = client.subscribe(destination)
     }
     
     func stompClient(client: StompClient, didErrorOccurred error: NSError) {
@@ -143,10 +128,9 @@ class BlotterDelegate: NSObject, StompClientDelegate {
     }
     
     func stompClient(client: StompClient, didReceivedData data: NSData, fromDestination destination: String) {
-        let json = try! NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
-        XCTAssert(json is [AnyObject])
+        assertionHandler(data)
         
-        client.unsubscribe(destination)
+        client.unsubscribe(destination, destinationId: destinationId!)
         
         XCTAssertNotNil(expectation, "Expectation doesn't setup.")
         expectation?.fulfill()

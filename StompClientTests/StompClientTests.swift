@@ -90,7 +90,7 @@ class StompClientTests: XCTestCase, StompClientDelegate {
         let data = try! NSJSONSerialization.dataWithJSONObject(["CONNECTED\nheart-beat:0,0\nversion:1.1\n\n\0"], options: NSJSONWritingOptions(rawValue: 0))
         socket.expectedMessage = "a" + String(data: data, encoding: NSUTF8StringEncoding)!
         
-        client.unsubscribe("/path")
+        client.unsubscribe("/path", destinationId: "sub-0")
         
         XCTAssert(socket.isMethodCalled)
     }
