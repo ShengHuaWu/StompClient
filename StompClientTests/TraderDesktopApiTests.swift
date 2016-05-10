@@ -12,8 +12,8 @@ import XCTest
 class TraderDesktopApiTests: XCTestCase {
     
     private var client: StompClient!
-//    private let baseURL = NSURL(string: "http://localhost:3000")!
-    private let baseURL = NSURL(string: "http://10.1.60.206:8080")!
+    private let baseURL = NSURL(string: "http://localhost:3000")!
+//    private let baseURL = NSURL(string: "http://10.1.60.206:8080")!
     private let accoutId = "laphone"
     private var session: String!
     
@@ -23,15 +23,14 @@ class TraderDesktopApiTests: XCTestCase {
         let url = baseURL.URLByAppendingPathComponent("/traderdesktop").appendServerIdAndSessionId()
         client = StompClient(url: url)
         
-        login()
-        
-        client.setValue(session, forHeaderField: "Cookie")
+//        login()
+//        client.setValue(session, forHeaderField: "Cookie")
     }
     
     override func tearDown() {
         super.tearDown()
         
-        logout()
+//        logout()
     }
     
     // MARK: - Private Methods
