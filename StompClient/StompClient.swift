@@ -57,9 +57,9 @@ public class StompClient: NSObject, WebSocketDelegate {
         socket.disconnect(forceTimeout: 0.0)
     }
     
-    public func subscribe(destination: String, parameters: [String : String]? = nil) {
+    public func subscribe(destination: String, parameters: [String : String]? = nil) -> String {
         let id = "sub-" + Int(arc4random_uniform(1000)).description
-        var headers:Set<StompHeader> = [.DestinationId(id: id), .Destination(path: destination)]
+        var headers: Set<StompHeader> = [.DestinationId(id: id), .Destination(path: destination)]
         if let params = parameters where !params.isEmpty {
             for (key, value) in params {
                 headers.insert(.Custom(key: key, value: value))
@@ -67,10 +67,13 @@ public class StompClient: NSObject, WebSocketDelegate {
         }
         let frame = StompFrame(command: .Subscribe, headers: headers)
         sendFrame(frame)
+        
+        return id
     }
 
-    public func unsubscribe(destination: String) {
-        let frame = StompFrame(command: .Unsubscribe, headers: [.Destination(path: destination)])
+    public func unsubscribe(destination: String, destinationId: String) {
+        let headers: Set<StompHeader> = [.DestinationId(id: destinationId), .Destination(path: destination)]
+        let frame = StompFrame(command: .Unsubscribe, headers: headers)
         sendFrame(frame)
     }
     
