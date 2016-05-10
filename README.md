@@ -21,7 +21,8 @@ After you are connected, there are some delegate methods that you need to implem
 `stompClient(client: StompClient, didReceivedData data: NSData, fromDestination destination: String)` is called when the client receive a message from a subscription destination.
 
 #### Subscription
-You can use `subscribe(destination: String, parameters: [String : String]?)` method to subscribe a topic.
+You can use `subscribe(destination: String, parameters: [String : String]?)` method to subscribe a topic, and this method will return a destination id string.
+Please pass this string to the second argument when invoking `unsubscribe(destination: String, destinationId: String)`
 
 ### Carthage Install
 Add the following line into your _Cartfile_,
