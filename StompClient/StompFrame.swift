@@ -129,7 +129,7 @@ enum StompHeader: Hashable {
     }
     
     // MARK: - Public Methods
-    static func parseKeyValuePair(key: String, value: String) throws -> StompHeader {
+    static func parseKeyValuePair(key: String, value: String) -> StompHeader {
         switch key {
         case "version":
             return .Version(version: value)
@@ -150,7 +150,7 @@ enum StompHeader: Hashable {
         case "content-type":
             return .ContentType(type: value)
         default:
-            throw NSError(domain: "com.shenghuawu.error", code: 1000, userInfo: [NSLocalizedDescriptionKey : "Received header is undefined."])
+            return .Custom(key: key, value: value)
         }
     }
     
@@ -248,7 +248,7 @@ struct StompFrame: CustomStringConvertible {
                     guard let key = parts.first, let value = parts.last else {
                         continue
                     }
-                    let header = try StompHeader.parseKeyValuePair(key, value: value)
+                    let header = StompHeader.parseKeyValuePair(key, value: value)
                     headers.insert(header)
                 }
             }
