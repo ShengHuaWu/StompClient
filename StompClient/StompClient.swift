@@ -65,7 +65,7 @@ open class StompClient: NSObject {
                 headers.insert(.custom(key: key, value: value))
             }
         }
-        let frame = StompFrame(command: .Subscribe, headers: headers)
+        let frame = StompFrame(command: .subscribe, headers: headers)
         sendFrame(frame)
         
         return id
@@ -73,19 +73,19 @@ open class StompClient: NSObject {
 
     open func unsubscribe(_ destination: String, destinationId: String) {
         let headers: Set<StompHeader> = [.destinationId(id: destinationId), .destination(path: destination)]
-        let frame = StompFrame(command: .Unsubscribe, headers: headers)
+        let frame = StompFrame(command: .unsubscribe, headers: headers)
         sendFrame(frame)
     }
     
     // MARK: - Private Methods
     fileprivate func sendConnect() {
         let headers: Set<StompHeader> = [.acceptVersion(version: "1.1"), .heartBeat(value: "10000,10000")]
-        let frame = StompFrame(command: .Connect, headers: headers)
+        let frame = StompFrame(command: .connect, headers: headers)
         sendFrame(frame)
     }
     
     fileprivate func sendDisconnect() {
-        let frame = StompFrame(command: .Disconnect)
+        let frame = StompFrame(command: .disconnect)
         sendFrame(frame)
     }
     
@@ -129,15 +129,15 @@ extension StompClient: WebSocketDelegate {
             // Parse frame from the remaining text
             let frame = try StompFrame.parseText(mutableText)
             switch frame.command {
-            case .Connected:
+            case .connected:
                 delegate?.stompClientDidConnected(self)
-            case .Message:
+            case .message:
                 guard let data = frame.body?.data(using: String.Encoding.utf8) else {
                     return
                 }
                 
                 delegate?.stompClient(self, didReceivedData: data, fromDestination: frame.destination)
-            case .Error:
+            case .error:
                 let error = NSError(domain: "com.shenghuawu.error", code: 999, userInfo: [NSLocalizedDescriptionKey : frame.message])
                 delegate?.stompClient(self, didErrorOccurred: error)
             default:

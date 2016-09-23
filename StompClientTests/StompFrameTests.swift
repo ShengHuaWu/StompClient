@@ -29,9 +29,9 @@ class StompFrameTests: XCTestCase {
         for (key, value) in parameters {
             headers.insert(.custom(key: key, value: value))
         }
-        frame = StompFrame(command: .Subscribe, headers: headers)
+        frame = StompFrame(command: .subscribe, headers: headers)
         
-        XCTAssertEqual(frame.command, StompCommand.Subscribe)
+        XCTAssertEqual(frame.command, StompCommand.subscribe)
         XCTAssertEqual(frame.headers.count, 4)
     }
     
@@ -44,7 +44,7 @@ class StompFrameTests: XCTestCase {
         
         frame = try! StompFrame.parseText(text)
         
-        XCTAssertEqual(frame.command, StompCommand.Message)
+        XCTAssertEqual(frame.command, StompCommand.message)
         XCTAssertEqual(frame.headers.count, 4)
         XCTAssertNotNil(frame.body)
     }

@@ -11,14 +11,14 @@ import Foundation
 // MARK: - Commands
 enum StompCommand: String {
     
-    case Connect = "CONNECT"
-    case Disconnect = "DISCONNECT"
-    case Subscribe = "SUBSCRIBE"
-    case Unsubscribe = "UNSUBSCRIBE"
+    case connect = "CONNECT"
+    case disconnect = "DISCONNECT"
+    case subscribe = "SUBSCRIBE"
+    case unsubscribe = "UNSUBSCRIBE"
     
-    case Connected = "CONNECTED"
-    case Message = "MESSAGE"
-    case Error = "ERROR"
+    case connected = "CONNECTED"
+    case message = "MESSAGE"
+    case error = "ERROR"
     
     // MARK: - Public Methods
     static func parseText(_ text: String) throws -> StompCommand {
