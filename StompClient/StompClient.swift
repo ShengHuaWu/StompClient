@@ -11,22 +11,22 @@ import Starscream
 
 public protocol StompClientDelegate: NSObjectProtocol {
     
-    func stompClientDidConnected(client: StompClient)
-    func stompClient(client: StompClient, didErrorOccurred error: NSError)
-    func stompClient(client: StompClient, didReceivedData data: NSData, fromDestination destination: String)
+    func stompClientDidConnected(_ client: StompClient)
+    func stompClient(_ client: StompClient, didErrorOccurred error: NSError)
+    func stompClient(_ client: StompClient, didReceivedData data: Data, fromDestination destination: String)
     
 }
 
-public class StompClient: NSObject, WebSocketDelegate {
+open class StompClient: NSObject {
     
     // MARK: - Public Properties
-    public weak var delegate: StompClientDelegate?
-    public var isConnected: Bool {
+    open weak var delegate: StompClientDelegate?
+    open var isConnected: Bool {
         return socket.isConnected
     }
 
     // MARK: - Private Properties
-    private var socket: WebSocketProtocol
+    fileprivate var socket: WebSocketProtocol
     
     // MARK: - Designated Initializer
     public init(socket: WebSocketProtocol) {
@@ -38,31 +38,31 @@ public class StompClient: NSObject, WebSocketDelegate {
     }
     
     // MARK: - Convenience Initializer
-    public convenience init(url: NSURL) {
+    public convenience init(url: URL) {
         let socket = WebSocket(url: url)
         self.init(socket: socket)
     }
     
     // MARK: - Public Methods
-    public func setValue(value: String, forHeaderField field: String) {
+    open func setValue(_ value: String, forHeaderField field: String) {
         socket.headers[field] = value
     }
     
-    public func connect() {
+    open func connect() {
         socket.connect()
     }
     
-    public func disconnect() {
+    open func disconnect() {
         sendDisconnect()
-        socket.disconnect(forceTimeout: 0.0)
+        socket.disconnect(0.0)
     }
     
-    public func subscribe(destination: String, parameters: [String : String]? = nil) -> String {
+    open func subscribe(_ destination: String, parameters: [String : String]? = nil) -> String {
         let id = "sub-" + Int(arc4random_uniform(1000)).description
-        var headers: Set<StompHeader> = [.DestinationId(id: id), .Destination(path: destination)]
-        if let params = parameters where !params.isEmpty {
+        var headers: Set<StompHeader> = [.destinationId(id: id), .destination(path: destination)]
+        if let params = parameters , !params.isEmpty {
             for (key, value) in params {
-                headers.insert(.Custom(key: key, value: value))
+                headers.insert(.custom(key: key, value: value))
             }
         }
         let frame = StompFrame(command: .Subscribe, headers: headers)
@@ -71,27 +71,27 @@ public class StompClient: NSObject, WebSocketDelegate {
         return id
     }
 
-    public func unsubscribe(destination: String, destinationId: String) {
-        let headers: Set<StompHeader> = [.DestinationId(id: destinationId), .Destination(path: destination)]
+    open func unsubscribe(_ destination: String, destinationId: String) {
+        let headers: Set<StompHeader> = [.destinationId(id: destinationId), .destination(path: destination)]
         let frame = StompFrame(command: .Unsubscribe, headers: headers)
         sendFrame(frame)
     }
     
     // MARK: - Private Methods
-    private func sendConnect() {
-        let headers: Set<StompHeader> = [.AcceptVersion(version: "1.1"), .HeartBeat(value: "10000,10000")]
+    fileprivate func sendConnect() {
+        let headers: Set<StompHeader> = [.acceptVersion(version: "1.1"), .heartBeat(value: "10000,10000")]
         let frame = StompFrame(command: .Connect, headers: headers)
         sendFrame(frame)
     }
     
-    private func sendDisconnect() {
+    fileprivate func sendDisconnect() {
         let frame = StompFrame(command: .Disconnect)
         sendFrame(frame)
     }
     
-    private func sendFrame(frame: StompFrame) {
-        let data = try! NSJSONSerialization.dataWithJSONObject([frame.description], options: NSJSONWritingOptions(rawValue: 0))
-        let string = String(data: data, encoding: NSUTF8StringEncoding)!
+    fileprivate func sendFrame(_ frame: StompFrame) {
+        let data = try! JSONSerialization.data(withJSONObject: [frame.description], options: JSONSerialization.WritingOptions(rawValue: 0))
+        let string = String(data: data, encoding: String.Encoding.utf8)!
         // Because STOMP is a message convey protocol, only this delegate method
         // will be called, and we MUST use -writeString method to pass messages.
         socket.writeString(string)
@@ -100,7 +100,7 @@ public class StompClient: NSObject, WebSocketDelegate {
 }
 
 // MARK: - Websocket Delegate
-extension StompClient {
+extension StompClient: WebSocketDelegate {
     
     public func websocketDidConnect(socket: WebSocket) {
         // We should wait for server response an open type frame.
@@ -114,7 +114,7 @@ extension StompClient {
     
     public func websocketDidReceiveMessage(socket: WebSocket, text: String) {
         var mutableText = text
-        let firstCharacter = mutableText.removeAtIndex(mutableText.startIndex)
+        let firstCharacter = mutableText.remove(at: mutableText.startIndex)
         do {
             // Parse response type from the first character
             let type = try StompResponseType.parseCharacter(firstCharacter)
@@ -132,7 +132,7 @@ extension StompClient {
             case .Connected:
                 delegate?.stompClientDidConnected(self)
             case .Message:
-                guard let data = frame.body?.dataUsingEncoding(NSUTF8StringEncoding) else {
+                guard let data = frame.body?.data(using: String.Encoding.utf8) else {
                     return
                 }
                 
@@ -148,36 +148,36 @@ extension StompClient {
         }
     }
     
-    public func websocketDidReceiveData(socket: WebSocket, data: NSData) {
+    public func websocketDidReceiveData(socket: WebSocket, data: Data) {
         // This delegate will NOT be called, since STOMP is a message convey protocol.
     }
     
 }
 
 // MARK: - Extensions
-extension NSURL {
+extension URL {
     
-    func appendServerIdAndSessionId() -> NSURL {
+    func appendServerIdAndSessionId() -> URL {
         let serverId = Int(arc4random_uniform(1000)).description
         let sessionId = String.randomAlphaNumericString(8)
-        var path = (serverId as NSString).stringByAppendingPathComponent(sessionId)
-        path = (path as NSString).stringByAppendingPathComponent("websocket")
+        var path = (serverId as NSString).appendingPathComponent(sessionId)
+        path = (path as NSString).appendingPathComponent("websocket")
         
-        return self.URLByAppendingPathComponent(path)
+        return self.appendingPathComponent(path)
     }
     
 }
 
 extension String {
     
-    static func randomAlphaNumericString(length: Int) -> String {
+    static func randomAlphaNumericString(_ length: Int) -> String {
         let allowedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         let allowedCharsCount = UInt32(allowedChars.characters.count)
         var randomString = ""
         
         for _ in (0 ..< length) {
             let randomNum = Int(arc4random_uniform(allowedCharsCount))
-            let newCharacter = allowedChars[allowedChars.startIndex.advancedBy(randomNum)]
+            let newCharacter = allowedChars[allowedChars.characters.index(allowedChars.startIndex, offsetBy: randomNum)]
             randomString += String(newCharacter)
         }
         
@@ -193,14 +193,18 @@ public protocol WebSocketProtocol {
     var isConnected: Bool { get }
     
     func connect()
-    func disconnect(forceTimeout forceTimeout: NSTimeInterval?)
-    func writeString(str: String)
+    func disconnect(_ forceTimeout: TimeInterval?)
+    func writeString(_ str: String)
     
 }
 
 extension WebSocket: WebSocketProtocol {
+    public func disconnect(_ forceTimeout: TimeInterval?) {
+        disconnect(forceTimeout: forceTimeout)
+    }
+
     
-    public func writeString(str: String) {
-        writeString(str, completion: nil)
+    public func writeString(_ str: String) {
+        write(string: str, completion: nil)
     }
 }

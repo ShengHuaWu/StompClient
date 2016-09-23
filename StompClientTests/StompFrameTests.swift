@@ -12,7 +12,7 @@ import XCTest
 class StompFrameTests: XCTestCase {
     
     // MARK: - Private Properties
-    private var frame: StompFrame!
+    fileprivate var frame: StompFrame!
     
     override func setUp() {
         super.setUp()
@@ -25,9 +25,9 @@ class StompFrameTests: XCTestCase {
     // MARK: - Enabled Tests
     func testCreateSubscribeFrame() {
         let parameters = ["eid" : "5566", "mid" : "7788"]
-        var headers: Set<StompHeader> = [.Destination(path: "/path"), .DestinationId(id: "sub-id")]
+        var headers: Set<StompHeader> = [.destination(path: "/path"), .destinationId(id: "sub-id")]
         for (key, value) in parameters {
-            headers.insert(.Custom(key: key, value: value))
+            headers.insert(.custom(key: key, value: value))
         }
         frame = StompFrame(command: .Subscribe, headers: headers)
         
@@ -37,10 +37,10 @@ class StompFrameTests: XCTestCase {
     
     func testCreateFrameFromText() {
         let body = ["key" : "value"]
-        let bodyData = try! NSJSONSerialization.dataWithJSONObject(body, options: NSJSONWritingOptions(rawValue: 0))
-        let bodyString = String(data: bodyData, encoding: NSUTF8StringEncoding)!
-        let data = try! NSJSONSerialization.dataWithJSONObject(["MESSAGE\ndestination:/user/topic/view/0\nsubscription:sub-0\nmessage-id:1234\ncontent-length:0\n\n\(bodyString)\n\0"], options: NSJSONWritingOptions(rawValue: 0))
-        let text = String(data: data, encoding: NSUTF8StringEncoding)!
+        let bodyData = try! JSONSerialization.data(withJSONObject: body, options: JSONSerialization.WritingOptions(rawValue: 0))
+        let bodyString = String(data: bodyData, encoding: String.Encoding.utf8)!
+        let data = try! JSONSerialization.data(withJSONObject: ["MESSAGE\ndestination:/user/topic/view/0\nsubscription:sub-0\nmessage-id:1234\ncontent-length:0\n\n\(bodyString)\n\0"], options: JSONSerialization.WritingOptions(rawValue: 0))
+        let text = String(data: data, encoding: String.Encoding.utf8)!
         
         frame = try! StompFrame.parseText(text)
         

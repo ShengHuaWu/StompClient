@@ -13,12 +13,12 @@ import Starscream
 class StompClientTests: XCTestCase, StompClientDelegate {
     
     // MARK: - Private Properties
-    private var client: StompClient!
-    private let socket = MockWebSocket()
-    private var isDelegateMethodCalled = false
-    private var receivedData: NSData?
-    private var receivedError: NSError?
-    private var destination: String?
+    fileprivate var client: StompClient!
+    fileprivate let socket = MockWebSocket()
+    fileprivate var isDelegateMethodCalled = false
+    fileprivate var receivedData: Data?
+    fileprivate var receivedError: NSError?
+    fileprivate var destination: String?
     
     override func setUp() {
         super.setUp()
@@ -41,8 +41,8 @@ class StompClientTests: XCTestCase, StompClientDelegate {
     }
     
     func testConnect() {
-        let data = try! NSJSONSerialization.dataWithJSONObject(["CONNECTED\nheart-beat:0,0\nversion:1.1\n\n\0"], options: NSJSONWritingOptions(rawValue: 0))
-        socket.expectedMessage = "a" + String(data: data, encoding: NSUTF8StringEncoding)!
+        let data = try! JSONSerialization.data(withJSONObject: ["CONNECTED\nheart-beat:0,0\nversion:1.1\n\n\0"], options: JSONSerialization.WritingOptions(rawValue: 0))
+        socket.expectedMessage = "a" + String(data: data, encoding: String.Encoding.utf8)!
         
         client.connect()
         
@@ -51,8 +51,8 @@ class StompClientTests: XCTestCase, StompClientDelegate {
     }
     
     func testDisconnect() {
-        let data = try! NSJSONSerialization.dataWithJSONObject(["CONNECTED\nheart-beat:0,0\nversion:1.1\n\n\0"], options: NSJSONWritingOptions(rawValue: 0))
-        socket.expectedMessage = "a" + String(data: data, encoding: NSUTF8StringEncoding)!
+        let data = try! JSONSerialization.data(withJSONObject: ["CONNECTED\nheart-beat:0,0\nversion:1.1\n\n\0"], options: JSONSerialization.WritingOptions(rawValue: 0))
+        socket.expectedMessage = "a" + String(data: data, encoding: String.Encoding.utf8)!
         socket.expectedError = NSError(domain: "com.nogle.surveillance", code: 999, userInfo: nil)
         
         client.disconnect()
@@ -63,13 +63,13 @@ class StompClientTests: XCTestCase, StompClientDelegate {
     
     func testSubscribe() {
         let body = ["key" : "value"]
-        let bodyData = try! NSJSONSerialization.dataWithJSONObject(body, options: NSJSONWritingOptions(rawValue: 0))
-        let bodyString = String(data: bodyData, encoding: NSUTF8StringEncoding)!
+        let bodyData = try! JSONSerialization.data(withJSONObject: body, options: JSONSerialization.WritingOptions(rawValue: 0))
+        let bodyString = String(data: bodyData, encoding: String.Encoding.utf8)!
         let destination = "/user/topic/view/0"
-        let data = try! NSJSONSerialization.dataWithJSONObject(["MESSAGE\ndestination:\(destination)\nsubscription:sub-0\nmessage-id:1234\ncontent-length:0\n\n\(bodyString)\n\0"], options: NSJSONWritingOptions(rawValue: 0))
-        socket.expectedMessage = "a" + String(data: data, encoding: NSUTF8StringEncoding)!
+        let data = try! JSONSerialization.data(withJSONObject: ["MESSAGE\ndestination:\(destination)\nsubscription:sub-0\nmessage-id:1234\ncontent-length:0\n\n\(bodyString)\n\0"], options: JSONSerialization.WritingOptions(rawValue: 0))
+        socket.expectedMessage = "a" + String(data: data, encoding: String.Encoding.utf8)!
         
-        client.subscribe(destination, parameters: ["eid" : "5566"])
+        _ = client.subscribe(destination, parameters: ["eid" : "5566"])
         
         XCTAssert(socket.isMethodCalled)
         XCTAssertNotNil(receivedData)
@@ -77,18 +77,18 @@ class StompClientTests: XCTestCase, StompClientDelegate {
     }
     
     func testSubscribeWithError() {
-        let data = try! NSJSONSerialization.dataWithJSONObject(["ERROR\nmessage:this is an error\ncontent-length:0\n\n\0"], options: NSJSONWritingOptions(rawValue: 0))
-        socket.expectedMessage = "a" + String(data: data, encoding: NSUTF8StringEncoding)!
+        let data = try! JSONSerialization.data(withJSONObject: ["ERROR\nmessage:this is an error\ncontent-length:0\n\n\0"], options: JSONSerialization.WritingOptions(rawValue: 0))
+        socket.expectedMessage = "a" + String(data: data, encoding: String.Encoding.utf8)!
         
-        client.subscribe("/path")
+        _ = client.subscribe("/path")
         
         XCTAssert(socket.isMethodCalled)
         XCTAssertNotNil(receivedError)
     }
     
     func testUnsubscribe() {
-        let data = try! NSJSONSerialization.dataWithJSONObject(["CONNECTED\nheart-beat:0,0\nversion:1.1\n\n\0"], options: NSJSONWritingOptions(rawValue: 0))
-        socket.expectedMessage = "a" + String(data: data, encoding: NSUTF8StringEncoding)!
+        let data = try! JSONSerialization.data(withJSONObject: ["CONNECTED\nheart-beat:0,0\nversion:1.1\n\n\0"], options: JSONSerialization.WritingOptions(rawValue: 0))
+        socket.expectedMessage = "a" + String(data: data, encoding: String.Encoding.utf8)!
         
         client.unsubscribe("/path", destinationId: "sub-0")
         
@@ -100,15 +100,15 @@ class StompClientTests: XCTestCase, StompClientDelegate {
 // MARK: - Stomp Client Delegate
 extension StompClientTests {
     
-    func stompClientDidConnected(client: StompClient) {
+    func stompClientDidConnected(_ client: StompClient) {
         isDelegateMethodCalled = true
     }
     
-    func stompClient(client: StompClient, didErrorOccurred error: NSError) {
+    func stompClient(_ client: StompClient, didErrorOccurred error: NSError) {
         receivedError = error
     }
     
-    func stompClient(client: StompClient, didReceivedData data: NSData, fromDestination destination: String) {
+    func stompClient(_ client: StompClient, didReceivedData data: Data, fromDestination destination: String) {
         receivedData = data
         self.destination = destination
     }
@@ -117,6 +117,10 @@ extension StompClientTests {
 
 // MARK: - Mock WebSocket
 class MockWebSocket: WebSocketProtocol {
+    
+    // MARK: - Private Properties
+    private let url = URL(string: "https://developer.apple.com")!
+
     
     // MARK: - Public Properties
     weak var delegate: WebSocketDelegate?
@@ -130,19 +134,19 @@ class MockWebSocket: WebSocketProtocol {
     func connect() {
         isMethodCalled = true
         
-        delegate?.websocketDidReceiveMessage(WebSocket(url: NSURL()), text: expectedMessage)
+        delegate?.websocketDidReceiveMessage(socket: WebSocket(url: url), text: expectedMessage)
     }
     
-    func disconnect(forceTimeout forceTimeout: NSTimeInterval?) {
+    func disconnect(_ forceTimeout: TimeInterval?) {
         isMethodCalled = true
         
-        delegate?.websocketDidDisconnect(WebSocket(url: NSURL()), error: expectedError)
+        delegate?.websocketDidDisconnect(socket: WebSocket(url: url), error: expectedError)
     }
     
-    func writeString(str: String) {
+    func writeString(_ str: String) {
         isMethodCalled = true
         
-        delegate?.websocketDidReceiveMessage(WebSocket(url: NSURL()), text: expectedMessage)
+        delegate?.websocketDidReceiveMessage(socket: WebSocket(url: url), text: expectedMessage)
     }
     
 }

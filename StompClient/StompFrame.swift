@@ -21,7 +21,7 @@ enum StompCommand: String {
     case Error = "ERROR"
     
     // MARK: - Public Methods
-    static func parseText(text: String) throws -> StompCommand {
+    static func parseText(_ text: String) throws -> StompCommand {
         guard let command = StompCommand(rawValue: text) else {
             throw NSError(domain: "com.shenghuawu.error", code: 1002, userInfo: [NSLocalizedDescriptionKey : "Received command is undefined."])
         }
@@ -33,82 +33,82 @@ enum StompCommand: String {
 // MARK: - Headers
 enum StompHeader: Hashable {
     
-    case AcceptVersion(version: String)
-    case HeartBeat(value: String)
-    case Destination(path: String)
-    case DestinationId(id: String)
-    case Custom(key: String, value: String)
+    case acceptVersion(version: String)
+    case heartBeat(value: String)
+    case destination(path: String)
+    case destinationId(id: String)
+    case custom(key: String, value: String)
     
-    case Version(version: String)
-    case Subscription(subId: String)
-    case MessageId(id: String)
-    case ContentLength(length: String)
-    case Message(message: String)
-    case UserName(name: String)
-    case ContentType(type: String)
+    case version(version: String)
+    case subscription(subId: String)
+    case messageId(id: String)
+    case contentLength(length: String)
+    case message(message: String)
+    case userName(name: String)
+    case contentType(type: String)
     
     // MARK: - Public Properties
     var key: String {
         switch self {
-        case .AcceptVersion:
+        case .acceptVersion:
             return "accept-version"
-        case .HeartBeat:
+        case .heartBeat:
             return "heart-beat"
-        case .Destination:
+        case .destination:
             return "destination"
-        case .DestinationId:
+        case .destinationId:
             return "id"
-        case .Custom(let key, _):
+        case .custom(let key, _):
             return key
-        case .Version:
+        case .version:
             return "version"
-        case .Subscription:
+        case .subscription:
             return "subscription"
-        case .MessageId:
+        case .messageId:
             return "message-id"
-        case .ContentLength:
+        case .contentLength:
             return "content-length"
-        case .Message:
+        case .message:
             return "message"
-        case .UserName:
+        case .userName:
             return "user-name"
-        case .ContentType:
+        case .contentType:
             return "content-type"
         }
     }
     
     var value: String {
         switch self {
-        case .AcceptVersion(let version):
+        case .acceptVersion(let version):
             return version
-        case .HeartBeat(let value):
+        case .heartBeat(let value):
             return value
-        case .Destination(let path):
+        case .destination(let path):
             return path
-        case .DestinationId(let id):
+        case .destinationId(let id):
             return id
-        case .Custom(_, let value):
+        case .custom(_, let value):
             return value
-        case .Version(let version):
+        case .version(let version):
             return version
-        case .Subscription(let subId):
+        case .subscription(let subId):
             return subId
-        case .MessageId(let id):
+        case .messageId(let id):
             return id
-        case .ContentLength(let length):
+        case .contentLength(let length):
             return length
-        case .Message(let body):
+        case .message(let body):
             return body
-        case .UserName(let name):
+        case .userName(let name):
             return name
-        case .ContentType(let type):
+        case .contentType(let type):
             return type
         }
     }
     
     var isMessage: Bool {
         switch self {
-        case .Message:
+        case .message:
             return true
         default:
             return false
@@ -117,7 +117,7 @@ enum StompHeader: Hashable {
     
     var isDestination: Bool {
         switch self {
-        case .Destination:
+        case .destination:
             return true
         default:
             return false
@@ -129,28 +129,28 @@ enum StompHeader: Hashable {
     }
     
     // MARK: - Public Methods
-    static func parseKeyValuePair(key: String, value: String) -> StompHeader {
+    static func parseKeyValuePair(_ key: String, value: String) -> StompHeader {
         switch key {
         case "version":
-            return .Version(version: value)
+            return .version(version: value)
         case "subscription":
-            return .Subscription(subId: value)
+            return .subscription(subId: value)
         case "message-id":
-            return .MessageId(id: value)
+            return .messageId(id: value)
         case "content-length":
-            return .ContentLength(length: value)
+            return .contentLength(length: value)
         case "message":
-            return .Message(message: value)
+            return .message(message: value)
         case "destination":
-            return .Destination(path: value)
+            return .destination(path: value)
         case "heart-beat":
-            return .HeartBeat(value: value)
+            return .heartBeat(value: value)
         case "user-name":
-            return .UserName(name: value)
+            return .userName(name: value)
         case "content-type":
-            return .ContentType(type: value)
+            return .contentType(type: value)
         default:
-            return .Custom(key: key, value: value)
+            return .custom(key: key, value: value)
         }
     }
     
@@ -171,7 +171,7 @@ enum StompResponseType: String {
     case Close = "c"
     
     // MARK: - Public Methods
-    static func parseCharacter(char: Character) throws -> StompResponseType {
+    static func parseCharacter(_ char: Character) throws -> StompResponseType {
         guard let type = StompResponseType(rawValue: String(char)) else {
             throw NSError(domain: "com.shenghuawu.error", code: 1001, userInfo: [NSLocalizedDescriptionKey : "Received type is undefined."])
         }
@@ -210,11 +210,11 @@ struct StompFrame: CustomStringConvertible {
     }
     
     // MARK: - Private Properties
-    private let lineFeed = "\n"
-    private let nullChar = "\0"
-    private(set) var command: StompCommand
-    private(set) var headers: Set<StompHeader>
-    private(set) var body: String?
+    fileprivate let lineFeed = "\n"
+    fileprivate let nullChar = "\0"
+    fileprivate(set) var command: StompCommand
+    fileprivate(set) var headers: Set<StompHeader>
+    fileprivate(set) var body: String?
     
     // MARK: - Designated Initializer
     init(command: StompCommand, headers: Set<StompHeader> = [], body: String? = nil) {
@@ -224,8 +224,8 @@ struct StompFrame: CustomStringConvertible {
     }
     
     // MARK: - Public Methods
-    static func parseText(text: String) throws -> StompFrame {
-        guard let components = try text.parseJSONString() where !components.isEmpty else {
+    static func parseText(_ text: String) throws -> StompFrame {
+        guard let components = try text.parseJSONString() , !components.isEmpty else {
             throw NSError(domain: "com.shenghuawu.error", code: 1002, userInfo: [NSLocalizedDescriptionKey : "Received frame is empty."])
         }
         let command = try StompCommand.parseText(components.first!)
@@ -238,13 +238,13 @@ struct StompFrame: CustomStringConvertible {
             if isBody {
                 body += component
                 if body.hasSuffix("\0") {
-                    body = body.stringByReplacingOccurrencesOfString("\0", withString: "")
+                    body = body.replacingOccurrences(of: "\0", with: "")
                 }
             } else {
                 if component == "" {
                     isBody = true
                 } else {
-                    let parts = component.componentsSeparatedByString(":")
+                    let parts = component.components(separatedBy: ":")
                     guard let key = parts.first, let value = parts.last else {
                         continue
                     }
@@ -262,10 +262,10 @@ struct StompFrame: CustomStringConvertible {
 extension String {
     
     func parseJSONString() throws -> [String]? {
-        return try dataUsingEncoding(NSUTF8StringEncoding).flatMap { data -> [String]? in
-            return try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments) as? [String]
+        return try data(using: String.Encoding.utf8).flatMap { data -> [String]? in
+            return try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String]
         }.flatMap { stringArray -> [String]? in
-            return stringArray.first?.componentsSeparatedByString("\n")
+            return stringArray.first?.components(separatedBy: "\n")
         }
     }
     
