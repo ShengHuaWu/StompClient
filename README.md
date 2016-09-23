@@ -2,6 +2,8 @@
 This project is a simple STOMP client in _Swift_,
 and we use [_Starscream_](https://github.com/daltoniam/starscream) as a websocket dependency.
 
+* Current version supports _Swift 3_.
+
 ### Usage
 First thing is to import the _Starscream_ and _StompClient_ frameworks.
 Once imported, you're able to connect to the server. Note that `client` is probably best as a property, so it doesn't get deallocated right after being setup.
@@ -24,20 +26,9 @@ After you are connected, there are some delegate methods that you need to implem
 You can use `subscribe(destination: String, parameters: [String : String]?)` method to subscribe a topic, and this method will return a destination id string.
 Please pass this string to the second argument when invoking `unsubscribe(destination: String, destinationId: String)`
 
-### Carthage Install
+### Installed by Carthage
 Add the following line into your _Cartfile_,
 
       github "ShengHuaWu/StompClient"
 
 , and then run `carthage update --platform ios` in your terminal.
-
-### CocoaPods Install
-Create a _Podfile_ as following,
-
-    source 'https://github.com/CocoaPods/Specs.git'
-    platform :ios, '9.0'
-    use_frameworks!
-
-    pod 'StompClient'
-
-, and then run `pod install` in your terminal.
