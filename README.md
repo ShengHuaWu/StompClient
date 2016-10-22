@@ -32,3 +32,14 @@ Add the following line into your _Cartfile_,
       github "ShengHuaWu/StompClient"
 
 , and then run `carthage update --platform ios` in your terminal.
+
+### Installed by CocoaPods
+Create a Podfile as following,
+
+    source 'https://github.com/CocoaPods/Specs.git'
+    platform :ios, '9.0'
+    use_frameworks!
+
+    pod 'StompClient'
+
+, and then run `pod install` in your terminal.
