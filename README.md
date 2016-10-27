@@ -1,8 +1,11 @@
-## Stomp Client [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
+## Stomp Client
+![Swift Version](https://img.shields.io/badge/swift-3.0-orange.svg?style=flat)
+[![CocoaPods Compatible](https://img.shields.io/cocoapods/v/Typist.svg)](https://img.shields.io/cocoapods/v/Typist.svg)
+[![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
+[![Platform](https://img.shields.io/cocoapods/p/Typist.svg?style=flat)](http://cocoapods.org/pods/Typist)
+
 This project is a simple STOMP client in _Swift_,
 and we use [_Starscream_](https://github.com/daltoniam/starscream) as a websocket dependency.
-
-* Current version supports _Swift 3_.
 
 ### Usage
 First thing is to import the _Starscream_ and _StompClient_ frameworks.
@@ -26,14 +29,15 @@ After you are connected, there are some delegate methods that you need to implem
 You can use `subscribe(destination: String, parameters: [String : String]?)` method to subscribe a topic, and this method will return a destination id string.
 Please pass this string to the second argument when invoking `unsubscribe(destination: String, destinationId: String)`
 
-### Installed by Carthage
+### Installation
+#### Carthage
 Add the following line into your _Cartfile_,
 
       github "ShengHuaWu/StompClient"
 
 , and then run `carthage update --platform ios` in your terminal.
 
-### Installed by CocoaPods
+#### CocoaPods
 Create a Podfile as following,
 
     source 'https://github.com/CocoaPods/Specs.git'
