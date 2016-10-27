@@ -1,8 +1,8 @@
 ## Stomp Client
 ![Swift Version](https://img.shields.io/badge/swift-3.0-orange.svg?style=flat)
-[![CocoaPods Compatible](https://img.shields.io/cocoapods/v/Typist.svg)](https://img.shields.io/cocoapods/v/Typist.svg)
-[![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
-[![Platform](https://img.shields.io/cocoapods/p/Typist.svg?style=flat)](http://cocoapods.org/pods/Typist)
+![CocoaPods Compatible](https://img.shields.io/cocoapods/v/StompClient.svg)
+![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)
+![Platform](https://img.shields.io/cocoapods/p/StompClient.svg?style=flat)
 
 This project is a simple STOMP client in _Swift_,
 and we use [_Starscream_](https://github.com/daltoniam/starscream) as a websocket dependency.
