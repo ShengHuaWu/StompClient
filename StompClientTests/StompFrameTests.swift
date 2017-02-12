@@ -42,7 +42,7 @@ class StompFrameTests: XCTestCase {
         let data = try! JSONSerialization.data(withJSONObject: ["MESSAGE\ndestination:/user/topic/view/0\nsubscription:sub-0\nmessage-id:1234\ncontent-length:0\n\n\(bodyString)\n\0"], options: JSONSerialization.WritingOptions(rawValue: 0))
         let text = String(data: data, encoding: String.Encoding.utf8)!
         
-        frame = try! StompFrame.parseText(text)
+        frame = try! StompFrame(text: text)
         
         XCTAssertEqual(frame.command, StompCommand.message)
         XCTAssertEqual(frame.headers.count, 4)

@@ -20,12 +20,13 @@ enum StompCommand: String {
     case message = "MESSAGE"
     case error = "ERROR"
     
-    // MARK: - Public Methods
-    static func parseText(_ text: String) throws -> StompCommand {
+    // MARK: - Failable Initializer
+    init(text: String) throws {
         guard let command = StompCommand(rawValue: text) else {
             throw NSError(domain: "com.shenghuawu.error", code: 1002, userInfo: [NSLocalizedDescriptionKey : "Received command is undefined."])
         }
-        return command
+        
+        self = command
     }
     
 }
@@ -128,37 +129,36 @@ enum StompHeader: Hashable {
         return key.hashValue
     }
     
-    // MARK: - Public Methods
-    static func parseKeyValuePair(_ key: String, value: String) -> StompHeader {
+    // MARK: Designated Initializer
+    init(key: String, value: String) {
         switch key {
         case "version":
-            return .version(version: value)
+            self = .version(version: value)
         case "subscription":
-            return .subscription(subId: value)
+            self = .subscription(subId: value)
         case "message-id":
-            return .messageId(id: value)
+            self = .messageId(id: value)
         case "content-length":
-            return .contentLength(length: value)
+            self = .contentLength(length: value)
         case "message":
-            return .message(message: value)
+            self = .message(message: value)
         case "destination":
-            return .destination(path: value)
+            self = .destination(path: value)
         case "heart-beat":
-            return .heartBeat(value: value)
+            self = .heartBeat(value: value)
         case "user-name":
-            return .userName(name: value)
+            self = .userName(name: value)
         case "content-type":
-            return .contentType(type: value)
+            self = .contentType(type: value)
         default:
-            return .custom(key: key, value: value)
+            self = .custom(key: key, value: value)
         }
     }
     
-}
-
-// MARK: - Equatable for Stomp Header
-func ==(lhs: StompHeader, rhs: StompHeader) -> Bool {
-    return lhs.hashValue == rhs.hashValue
+    // MARK: - Equatable
+    static func ==(lhs: StompHeader, rhs: StompHeader) -> Bool {
+        return lhs.hashValue == rhs.hashValue
+    }
 }
 
 // MARK: - Response Types
@@ -170,12 +170,14 @@ enum StompResponseType: String {
     case Message = "m"
     case Close = "c"
     
-    // MARK: - Public Methods
-    static func parseCharacter(_ char: Character) throws -> StompResponseType {
-        guard let type = StompResponseType(rawValue: String(char)) else {
+    
+    // MARK: - Failable Initializer
+    init(character: Character) throws {
+        guard let type = StompResponseType(rawValue: String(character)) else {
             throw NSError(domain: "com.shenghuawu.error", code: 1001, userInfo: [NSLocalizedDescriptionKey : "Received type is undefined."])
         }
-        return type
+        
+        self = type
     }
     
 }
@@ -223,12 +225,12 @@ struct StompFrame: CustomStringConvertible {
         self.body = body
     }
     
-    // MARK: - Public Methods
-    static func parseText(_ text: String) throws -> StompFrame {
+    // MARK: - Failable Initializer
+    init(text: String) throws {
         guard let components = try text.parseJSONString() , !components.isEmpty else {
             throw NSError(domain: "com.shenghuawu.error", code: 1002, userInfo: [NSLocalizedDescriptionKey : "Received frame is empty."])
         }
-        let command = try StompCommand.parseText(components.first!)
+        let command = try StompCommand(text: components.first!)
         
         var headers: Set<StompHeader> = []
         var body = ""
@@ -248,14 +250,14 @@ struct StompFrame: CustomStringConvertible {
                     guard let key = parts.first, let value = parts.last else {
                         continue
                     }
-                    let header = StompHeader.parseKeyValuePair(key, value: value)
+                    let header = StompHeader(key: key, value: value)
                     headers.insert(header)
                 }
             }
         }
-        return StompFrame(command: command, headers: headers, body: body)
+        
+        self.init(command: command, headers: headers, body: body)
     }
-    
 }
 
 // MARK: - Extensions

@@ -117,7 +117,7 @@ extension StompClient: WebSocketDelegate {
         let firstCharacter = mutableText.remove(at: mutableText.startIndex)
         do {
             // Parse response type from the first character
-            let type = try StompResponseType.parseCharacter(firstCharacter)
+            let type = try StompResponseType(character: firstCharacter)
             if type == .Open {
                 sendConnect()
                 return
@@ -127,7 +127,7 @@ extension StompClient: WebSocketDelegate {
             }
             
             // Parse frame from the remaining text
-            let frame = try StompFrame.parseText(mutableText)
+            let frame = try StompFrame(text: mutableText)
             switch frame.command {
             case .connected:
                 delegate?.stompClientDidConnected(self)
