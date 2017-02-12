@@ -17,16 +17,16 @@ public protocol StompClientDelegate: NSObjectProtocol {
     
 }
 
-open class StompClient: NSObject {
+public final class StompClient: NSObject {
     
     // MARK: - Public Properties
-    open weak var delegate: StompClientDelegate?
-    open var isConnected: Bool {
+    public weak var delegate: StompClientDelegate?
+    public var isConnected: Bool {
         return socket.isConnected
     }
 
     // MARK: - Private Properties
-    fileprivate var socket: WebSocketProtocol
+    private var socket: WebSocketProtocol
     
     // MARK: - Designated Initializer
     public init(socket: WebSocketProtocol) {
@@ -44,20 +44,20 @@ open class StompClient: NSObject {
     }
     
     // MARK: - Public Methods
-    open func setValue(_ value: String, forHeaderField field: String) {
+    public func setValue(_ value: String, forHeaderField field: String) {
         socket.headers[field] = value
     }
     
-    open func connect() {
+    public func connect() {
         socket.connect()
     }
     
-    open func disconnect() {
+    public func disconnect() {
         sendDisconnect()
         socket.disconnect(0.0)
     }
     
-    open func subscribe(_ destination: String, parameters: [String : String]? = nil) -> String {
+    public func subscribe(_ destination: String, parameters: [String : String]? = nil) -> String {
         let id = "sub-" + Int(arc4random_uniform(1000)).description
         var headers: Set<StompHeader> = [.destinationId(id: id), .destination(path: destination)]
         if let params = parameters , !params.isEmpty {
@@ -71,7 +71,7 @@ open class StompClient: NSObject {
         return id
     }
 
-    open func unsubscribe(_ destination: String, destinationId: String) {
+    public func unsubscribe(_ destination: String, destinationId: String) {
         let headers: Set<StompHeader> = [.destinationId(id: destinationId), .destination(path: destination)]
         let frame = StompFrame(command: .unsubscribe, headers: headers)
         sendFrame(frame)
@@ -84,15 +84,15 @@ open class StompClient: NSObject {
         sendFrame(frame)
     }
     
-    fileprivate func sendDisconnect() {
+    private func sendDisconnect() {
         let frame = StompFrame(command: .disconnect)
         sendFrame(frame)
     }
     
-    fileprivate func sendFrame(_ frame: StompFrame) {
+    private func sendFrame(_ frame: StompFrame) {
         let data = try! JSONSerialization.data(withJSONObject: [frame.description], options: JSONSerialization.WritingOptions(rawValue: 0))
         let string = String(data: data, encoding: String.Encoding.utf8)!
-        // Because STOMP is a message convey protocol, only this delegate method
+        // Because STOMP is a message convey protocol, only -websocketDidReceiveMessage method
         // will be called, and we MUST use -writeString method to pass messages.
         socket.writeString(string)
     }

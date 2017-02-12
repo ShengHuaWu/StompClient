@@ -210,11 +210,11 @@ struct StompFrame: CustomStringConvertible {
     }
     
     // MARK: - Private Properties
-    fileprivate let lineFeed = "\n"
-    fileprivate let nullChar = "\0"
-    fileprivate(set) var command: StompCommand
-    fileprivate(set) var headers: Set<StompHeader>
-    fileprivate(set) var body: String?
+    private let lineFeed = "\n"
+    private let nullChar = "\0"
+    private(set) var command: StompCommand
+    private(set) var headers: Set<StompHeader>
+    private(set) var body: String?
     
     // MARK: - Designated Initializer
     init(command: StompCommand, headers: Set<StompHeader> = [], body: String? = nil) {
