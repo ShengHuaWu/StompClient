@@ -17,7 +17,7 @@ public protocol StompClientDelegate: NSObjectProtocol {
     
 }
 
-public final class StompClient: NSObject {
+public final class StompClient {
     
     // MARK: - Public Properties
     public weak var delegate: StompClientDelegate?
@@ -29,11 +29,8 @@ public final class StompClient: NSObject {
     private var socket: WebSocketProtocol
     
     // MARK: - Designated Initializer
-    public init(socket: WebSocketProtocol) {
+    init(socket: WebSocketProtocol) {
         self.socket = socket
-        
-        super.init()
-        
         self.socket.delegate = self
     }
     
@@ -92,8 +89,9 @@ public final class StompClient: NSObject {
     private func sendFrame(_ frame: StompFrame) {
         let data = try! JSONSerialization.data(withJSONObject: [frame.description], options: JSONSerialization.WritingOptions(rawValue: 0))
         let string = String(data: data, encoding: String.Encoding.utf8)!
-        // Because STOMP is a message convey protocol, only -websocketDidReceiveMessage method
-        // will be called, and we MUST use -writeString method to pass messages.
+        // Because STOMP is a message convey protocol, 
+        // only -websocketDidReceiveMessage method will be called,
+        // and we MUST use -writeString method to pass messages.
         socket.writeString(string)
     }
     
